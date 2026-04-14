@@ -16,6 +16,7 @@ let isIdle = false
 let accumulatedMovePx = 0
 let lastMouseX = 0
 let lastMouseY = 0
+let mouseInitialized = false
 let lastIdleResetAt = 0
 
 let idleTimer: ReturnType<typeof setTimeout> | null = null
@@ -69,6 +70,14 @@ export function initInputEngine(getWindow: WindowGetter): void {
   })
 
   uIOhook.on('mousemove', (e: { x: number; y: number }) => {
+    if (!mouseInitialized) {
+      mouseInitialized = true
+      lastMouseX = e.x
+      lastMouseY = e.y
+      resetIdle()
+      return
+    }
+
     const dx = e.x - lastMouseX
     const dy = e.y - lastMouseY
     accumulatedMovePx += Math.sqrt(dx * dx + dy * dy)

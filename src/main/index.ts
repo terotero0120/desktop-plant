@@ -87,7 +87,13 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  await initStore()
+  try {
+    await initStore()
+  } catch (err) {
+    console.error('[desktop-plant] store initialization failed:', err)
+    app.quit()
+    return
+  }
 
   ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState())
 
