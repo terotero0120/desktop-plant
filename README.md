@@ -35,4 +35,3 @@ npm run build:mac
 
 - [仕様書](doc/spec.md)
 - [タスクリスト](doc/task-list.md)
-# desktop-plant
