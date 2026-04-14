@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { initStore, getState } from './store'
+import { initStore, getState, IPC_CHANNELS } from './store'
 import { initInputEngine, stopInputEngine } from './inputEngine'
 
 const WINDOW_WIDTH = 200
@@ -89,7 +89,7 @@ app.whenReady().then(async () => {
 
   await initStore()
 
-  ipcMain.handle('plant:get-state', () => getState())
+  ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState())
 
   createWindow()
   createTray()

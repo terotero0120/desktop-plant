@@ -1,6 +1,6 @@
 import { uIOhook } from 'uiohook-napi'
 import type { BrowserWindow } from 'electron'
-import { getState, updateState, flushState } from './store'
+import { getState, incrementPoints, flushState, IPC_CHANNELS } from './store'
 
 // spec section 1: 換算レート（暫定）
 const KEYSTROKE_PTS = 1             // 1打鍵 = 1pt
@@ -12,7 +12,6 @@ const SAVE_INTERVAL_MS = 10_000     // 10秒ごとにディスクへ書き込み
 const STATE_PUSH_MS = 1_000         // renderer へのプッシュを最大1秒に1回
 const IDLE_RESET_THROTTLE_MS = 200  // アイドルタイマーリセットのスロットル
 
-let totalPoints = 0
 let isIdle = false
 let accumulatedMovePx = 0
 let lastMouseX = 0
@@ -41,8 +40,7 @@ function resetIdle(): void {
 
 function addPoints(pts: number): void {
   if (isIdle) return
-  totalPoints += pts
-  updateState({ totalPoints })
+  incrementPoints(pts)
   schedulePush()
 }
 
@@ -52,14 +50,13 @@ function schedulePush(): void {
     pushTimer = null
     const win = _getWindow()
     if (win && !win.isDestroyed()) {
-      win.webContents.send('plant:state-update', getState())
+      win.webContents.send(IPC_CHANNELS.STATE_UPDATE, getState())
     }
   }, STATE_PUSH_MS)
 }
 
 export function initInputEngine(getWindow: WindowGetter): void {
   _getWindow = getWindow
-  totalPoints = getState().totalPoints
 
   uIOhook.on('keydown', () => {
     resetIdle()

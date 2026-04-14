@@ -8,11 +8,4 @@ declare global {
   }
 }
 
-// IPC チャンネル定義（型参照用）
-// renderer → main
-//   ipcRenderer.invoke('plant:get-state') → Promise<PlantState>
-// main → renderer
-//   ipcRenderer.on('plant:state-update', (_, state: PlantState) => void)
-
 export type { PlantState }
-

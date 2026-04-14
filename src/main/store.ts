@@ -8,6 +8,11 @@ export interface PlantState {
   bloomedPlantId: string | null
 }
 
+export const IPC_CHANNELS = {
+  GET_STATE: 'plant:get-state',
+  STATE_UPDATE: 'plant:state-update'
+} as const
+
 const DEFAULTS: PlantState = {
   totalPoints: 0,
   growthStage: 'seedling',
@@ -21,15 +26,15 @@ let _state: PlantState = { ...DEFAULTS }
 export async function initStore(): Promise<void> {
   const { default: Store } = await import('electron-store')
   _store = new Store<PlantState>({ defaults: DEFAULTS })
-  _state = {
-    totalPoints: _store.get('totalPoints'),
-    growthStage: _store.get('growthStage'),
-    bloomedPlantId: _store.get('bloomedPlantId')
-  }
+  _state = _store.store as PlantState
 }
 
 export function getState(): PlantState {
   return { ..._state }
+}
+
+export function incrementPoints(delta: number): void {
+  _state.totalPoints += delta
 }
 
 export function updateState(updates: Partial<PlantState>): void {
@@ -38,7 +43,5 @@ export function updateState(updates: Partial<PlantState>): void {
 
 export function flushState(): void {
   if (!_store) return
-  _store.set('totalPoints', _state.totalPoints)
-  _store.set('growthStage', _state.growthStage)
-  _store.set('bloomedPlantId', _state.bloomedPlantId)
+  _store.store = _state
 }
