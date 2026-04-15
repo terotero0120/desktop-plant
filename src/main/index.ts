@@ -1,14 +1,23 @@
 import { app, shell, BrowserWindow, Tray, Menu, dialog, nativeImage, screen, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { initStore, getState, resetPlant, flushState, IPC_CHANNELS } from './store'
+import { initStore, getState, getCollection, resetPlant, flushState, IPC_CHANNELS } from './store'
 import { initInputEngine, stopInputEngine } from './inputEngine'
 
 const WINDOW_WIDTH = 200
 const WINDOW_HEIGHT = 300
 const WINDOW_MARGIN = 16
 
+// sandbox: false は uiohook-napi など native モジュールを main から
+// IPC 経由で呼び出す際に必要になる可能性があるため残す
+const COMMON_WEB_PREFERENCES = {
+  preload: join(__dirname, '../preload/index.js'),
+  contextIsolation: true,
+  sandbox: false
+} as const
+
 let mainWindow: BrowserWindow | null = null
+let collectionWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 
 function applyOverlaySettings(win: BrowserWindow): void {
@@ -17,6 +26,30 @@ function applyOverlaySettings(win: BrowserWindow): void {
   if (process.platform === 'darwin') {
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   }
+}
+
+function createCollectionWindow(): void {
+  if (collectionWindow && !collectionWindow.isDestroyed()) {
+    collectionWindow.focus()
+    return
+  }
+  collectionWindow = new BrowserWindow({
+    width: 480,
+    height: 600,
+    title: '図鑑',
+    autoHideMenuBar: true,
+    webPreferences: COMMON_WEB_PREFERENCES
+  })
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    collectionWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}?view=collection`)
+  } else {
+    collectionWindow.loadFile(join(__dirname, '../renderer/index.html'), {
+      query: { view: 'collection' }
+    })
+  }
+  collectionWindow.on('closed', () => {
+    collectionWindow = null
+  })
 }
 
 function createTray(): void {
@@ -65,13 +98,7 @@ function createWindow(): void {
     resizable: false,
     show: false,
     autoHideMenuBar: true,
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      contextIsolation: true,
-      // sandbox: false は uiohook-napi など native モジュールを main から
-      // IPC 経由で呼び出す際に必要になる可能性があるため残す
-      sandbox: false
-    }
+    webPreferences: COMMON_WEB_PREFERENCES
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -111,6 +138,7 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState())
+  ipcMain.handle(IPC_CHANNELS.GET_COLLECTION, () => getCollection())
 
   function doNextSeed(): void {
     resetPlant()
@@ -129,7 +157,7 @@ app.whenReady().then(async () => {
   ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {
     const menu = Menu.buildFromTemplate([
       { label: '次のタネを植える', click: doNextSeed },
-      { label: '図鑑', enabled: false },
+      { label: '図鑑', click: createCollectionWindow },
       {
         label: 'プライバシー',
         click: (): void => {
