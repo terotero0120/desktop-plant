@@ -129,7 +129,7 @@ describe('checkGrowth', () => {
     updateState({ totalPoints: GROWTH_THRESHOLD })
     checkGrowth(() => 'sunflower')
     expect(getState().growthStage).toBe('bloom')
-    expect(getState().bloomedPlantId).toBe('sunflower')  // ← add this line
+    expect(getState().bloomedPlantId).toBe('sunflower')
   })
 
   it('bloomedPlantId は PLANT_IDS の中の値である', () => {

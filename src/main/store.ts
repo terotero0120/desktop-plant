@@ -55,6 +55,8 @@ export async function initStore(): Promise<void> {
   const { default: Store } = await import('electron-store')
   _store = new Store<PlantState>({ defaults: DEFAULTS })
   _state = _store.store as PlantState
+  checkGrowth()
+  flushState()
 }
 
 export function getState(): PlantState {
