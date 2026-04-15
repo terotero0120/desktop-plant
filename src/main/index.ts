@@ -13,7 +13,9 @@ let tray: Tray | null = null
 
 function applyOverlaySettings(win: BrowserWindow): void {
   win.setAlwaysOnTop(true, 'floating')
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  if (process.platform === 'darwin') {
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  }
 }
 
 function createTray(): void {

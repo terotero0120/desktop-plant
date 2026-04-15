@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { GrowthStage, PlantId, PlantState } from '../../main/store'
-import { IPC_CHANNELS } from '../../main/store'
+import type { GrowthStage, PlantId, PlantState } from '../../shared/ipc'
+import { IPC_CHANNELS } from '../../shared/ipc'
 import potSvg from './assets/plants/pot.svg'
 import seedlingSvg from './assets/plants/seedling.svg'
 import budSvg from './assets/plants/bud.svg'
