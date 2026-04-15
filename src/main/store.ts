@@ -13,6 +13,33 @@ export const IPC_CHANNELS = {
   STATE_UPDATE: 'plant:state-update'
 } as const
 
+export const GROWTH_THRESHOLD = 15_000
+export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5  // 7_500
+
+export const PLANT_IDS = ['rose', 'sunflower', 'tulip'] as const
+export type PlantId = (typeof PLANT_IDS)[number]
+
+type PickRandom = (ids: readonly string[]) => string
+
+function pickRandomDefault(ids: readonly string[]): string {
+  return ids[Math.floor(Math.random() * ids.length)]
+}
+
+export function checkGrowth(pickRandom: PickRandom = pickRandomDefault): void {
+  if (_state.growthStage === 'seedling' && _state.totalPoints >= BUD_THRESHOLD) {
+    _state.growthStage = 'bud'
+  }
+  if (_state.growthStage === 'bud' && _state.totalPoints >= GROWTH_THRESHOLD) {
+    _state.growthStage = 'bloom'
+    _state.bloomedPlantId = pickRandom(PLANT_IDS)
+  }
+}
+
+export function resetPlant(): void {
+  // implemented in Task 3 — stub only
+  _state = { ...DEFAULTS }
+}
+
 const DEFAULTS: PlantState = {
   totalPoints: 0,
   growthStage: 'seedling',
