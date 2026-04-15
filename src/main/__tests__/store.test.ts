@@ -93,7 +93,7 @@ describe('checkGrowth', () => {
 
   it('bloom 中は checkGrowth を呼んでも bloomedPlantId が変わらない', () => {
     updateState({ totalPoints: GROWTH_THRESHOLD, growthStage: 'bloom', bloomedPlantId: 'tulip' })
-    const pick = vi.fn(() => 'rose')
+    const pick = vi.fn(() => 'rose' as const)
     checkGrowth(pick)
     expect(pick).not.toHaveBeenCalled()
     expect(getState().bloomedPlantId).toBe('tulip')
@@ -103,6 +103,7 @@ describe('checkGrowth', () => {
     updateState({ totalPoints: GROWTH_THRESHOLD })
     checkGrowth(() => 'sunflower')
     expect(getState().growthStage).toBe('bloom')
+    expect(getState().bloomedPlantId).toBe('sunflower')  // ← add this line
   })
 
   it('bloomedPlantId は PLANT_IDS の中の値である', () => {

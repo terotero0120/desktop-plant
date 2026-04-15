@@ -2,10 +2,16 @@
 
 export type GrowthStage = 'seedling' | 'bud' | 'bloom'
 
+export const GROWTH_THRESHOLD = 15_000
+export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5  // 7_500
+
+export const PLANT_IDS = ['rose', 'sunflower', 'tulip'] as const
+export type PlantId = (typeof PLANT_IDS)[number]
+
 export interface PlantState {
   totalPoints: number
   growthStage: GrowthStage
-  bloomedPlantId: string | null
+  bloomedPlantId: PlantId | null
 }
 
 export const IPC_CHANNELS = {
@@ -13,15 +19,10 @@ export const IPC_CHANNELS = {
   STATE_UPDATE: 'plant:state-update'
 } as const
 
-export const GROWTH_THRESHOLD = 15_000
-export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5  // 7_500
+type PickRandom = (ids: readonly PlantId[]) => PlantId
 
-export const PLANT_IDS = ['rose', 'sunflower', 'tulip'] as const
-export type PlantId = (typeof PLANT_IDS)[number]
-
-type PickRandom = (ids: readonly string[]) => string
-
-function pickRandomDefault(ids: readonly string[]): string {
+function pickRandomDefault(ids: readonly PlantId[]): PlantId {
+  if (ids.length === 0) throw new Error('pickRandom: empty ids array')
   return ids[Math.floor(Math.random() * ids.length)]
 }
 
@@ -36,7 +37,6 @@ export function checkGrowth(pickRandom: PickRandom = pickRandomDefault): void {
 }
 
 export function resetPlant(): void {
-  // implemented in Task 3 — stub only
   _state = { ...DEFAULTS }
 }
 
