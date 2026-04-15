@@ -1,11 +1,11 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
-import type { PlantState } from '../main/store'
+import { ElectronAPI } from "@electron-toolkit/preload";
+import type { PlantState } from "../main/store";
 
 declare global {
   interface Window {
-    electron: ElectronAPI
-    api: unknown
+    electron: ElectronAPI;
+    api: unknown;
   }
 }
 
-export type { PlantState }
+export type { PlantState };
