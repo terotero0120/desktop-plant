@@ -56,6 +56,7 @@ function createWindow(): void {
     y: workY + workHeight - WINDOW_HEIGHT - WINDOW_MARGIN,
     frame: false,
     transparent: true,
+    hasShadow: false,
     alwaysOnTop: true,
     skipTaskbar: true,
     resizable: false,

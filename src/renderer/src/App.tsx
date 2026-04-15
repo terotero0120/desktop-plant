@@ -65,8 +65,13 @@ function App(): React.JSX.Element {
 
   return (
     <div style={{ position: 'relative', width: '200px', height: '300px' }}>
-      <img src={getPlantImage(state)} alt="plant" style={layerStyle} />
-      <img src={potSvg} alt="pot" style={layerStyle} />
+      <img src={getPlantImage(state)} alt="plant" style={layerStyle} draggable={false} />
+      <img src={potSvg} alt="pot" style={layerStyle} draggable={false} />
+      {import.meta.env.DEV && (
+        <div style={{ position: 'absolute', top: 4, left: 4, color: 'white', fontSize: 10, pointerEvents: 'none' }}>
+          {state.totalPoints}pt / {state.growthStage}
+        </div>
+      )}
     </div>
   )
 }

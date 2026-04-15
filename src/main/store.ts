@@ -2,7 +2,8 @@
 
 export type GrowthStage = 'seedling' | 'bud' | 'bloom'
 
-export const GROWTH_THRESHOLD = 15_000
+const isDev = process.env.NODE_ENV === 'development'
+export const GROWTH_THRESHOLD = isDev ? 1_000 : 15_000
 export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5
 
 export const PLANT_IDS = ['rose', 'sunflower', 'tulip'] as const
