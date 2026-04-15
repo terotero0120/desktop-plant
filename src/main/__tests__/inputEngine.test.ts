@@ -70,7 +70,8 @@ describe('inputEngine', () => {
       vi.advanceTimersByTime(300) // アイドルリセットのスロットル(200ms)を超える
       handlers['keydown']()
       expect(mockIncrementPoints).toHaveBeenCalledTimes(2)
-      expect(mockIncrementPoints).toHaveBeenCalledWith(1)
+      expect(mockIncrementPoints).toHaveBeenNthCalledWith(1, 1)
+      expect(mockIncrementPoints).toHaveBeenNthCalledWith(2, 1)
     })
   })
 
@@ -123,10 +124,12 @@ describe('inputEngine', () => {
     it('1500px 移動後の余り 500px は次回のカウントに持ち越される', () => {
       handlers['mousemove']({ x: 0, y: 0 })
       handlers['mousemove']({ x: 1500, y: 0 }) // 10pt 加算、余り 500px
+      expect(mockIncrementPoints).toHaveBeenCalledOnce()
       expect(mockIncrementPoints).toHaveBeenCalledWith(10)
       mockIncrementPoints.mockClear()
 
       handlers['mousemove']({ x: 2000, y: 0 }) // +500px = 累積 1000px → 10pt
+      expect(mockIncrementPoints).toHaveBeenCalledOnce()
       expect(mockIncrementPoints).toHaveBeenCalledWith(10)
     })
   })

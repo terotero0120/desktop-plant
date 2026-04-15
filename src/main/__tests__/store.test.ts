@@ -6,7 +6,7 @@ beforeEach(() => {
 })
 
 describe('getState', () => {
-  it('デフォルト状態を返す', () => {
+  it('beforeEach でリセット後に全フィールドが期待値を返す', () => {
     const state = getState()
     expect(state.totalPoints).toBe(0)
     expect(state.growthStage).toBe('seedling')
