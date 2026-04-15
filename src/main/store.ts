@@ -3,7 +3,7 @@
 export type GrowthStage = 'seedling' | 'bud' | 'bloom'
 
 export const GROWTH_THRESHOLD = 15_000
-export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5  // 7_500
+export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5
 
 export const PLANT_IDS = ['rose', 'sunflower', 'tulip'] as const
 export type PlantId = (typeof PLANT_IDS)[number]
@@ -55,8 +55,11 @@ export async function initStore(): Promise<void> {
   const { default: Store } = await import('electron-store')
   _store = new Store<PlantState>({ defaults: DEFAULTS })
   _state = _store.store as PlantState
+  const stageBefore = _state.growthStage
   checkGrowth()
-  flushState()
+  if (_state.growthStage !== stageBefore) {
+    flushState()
+  }
 }
 
 export function getState(): PlantState {
