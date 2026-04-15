@@ -16,7 +16,8 @@ export interface PlantState {
 
 export const IPC_CHANNELS = {
   GET_STATE: 'plant:get-state',
-  STATE_UPDATE: 'plant:state-update'
+  STATE_UPDATE: 'plant:state-update',
+  PLANT_NEXT_SEED: 'plant:next-seed'
 } as const
 
 type PickRandom = (ids: readonly PlantId[]) => PlantId

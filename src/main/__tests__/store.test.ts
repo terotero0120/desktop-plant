@@ -138,3 +138,21 @@ describe('checkGrowth', () => {
     expect(PLANT_IDS).toContain(getState().bloomedPlantId)
   })
 })
+
+describe('resetPlant', () => {
+  it('全フィールドをデフォルト値にリセットする', () => {
+    updateState({ totalPoints: 10000, growthStage: 'bloom', bloomedPlantId: 'rose' })
+    resetPlant()
+    const state = getState()
+    expect(state.totalPoints).toBe(0)
+    expect(state.growthStage).toBe('seedling')
+    expect(state.bloomedPlantId).toBeNull()
+  })
+
+  it('リセット後 incrementPoints が再び機能する', () => {
+    updateState({ growthStage: 'bloom', totalPoints: GROWTH_THRESHOLD, bloomedPlantId: 'rose' })
+    resetPlant()
+    incrementPoints(10)
+    expect(getState().totalPoints).toBe(10)
+  })
+})
