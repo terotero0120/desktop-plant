@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, Tray, Menu, dialog, nativeImage, screen, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initStore, getState, resetPlant, flushState, IPC_CHANNELS } from './store'
@@ -10,6 +10,11 @@ const WINDOW_MARGIN = 16
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
+
+function applyOverlaySettings(win: BrowserWindow): void {
+  win.setAlwaysOnTop(true, 'floating')
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+}
 
 function createTray(): void {
   const iconImage = nativeImage.createFromPath(join(__dirname, '../../resources/icon.png'))
@@ -30,7 +35,12 @@ function createTray(): void {
 
   tray.on('click', () => {
     if (mainWindow) {
-      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()
+      if (mainWindow.isVisible()) {
+        mainWindow.hide()
+      } else {
+        mainWindow.show()
+        applyOverlaySettings(mainWindow)
+      }
     }
   })
 }
@@ -61,6 +71,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
+    applyOverlaySettings(mainWindow!)
     mainWindow?.show()
   })
 
@@ -97,14 +108,47 @@ app.whenReady().then(async () => {
 
   ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState())
 
-  ipcMain.handle(IPC_CHANNELS.PLANT_NEXT_SEED, () => {
+  function doNextSeed(): void {
     resetPlant()
     flushState()
     const state = getState()
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send(IPC_CHANNELS.STATE_UPDATE, state)
     }
-    return state
+  }
+
+  ipcMain.handle(IPC_CHANNELS.PLANT_NEXT_SEED, () => {
+    doNextSeed()
+    return getState()
+  })
+
+  ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {
+    const menu = Menu.buildFromTemplate([
+      { label: '次のタネを植える', click: doNextSeed },
+      { label: '図鑑', enabled: false },
+      {
+        label: 'プライバシー',
+        click: (): void => {
+          dialog.showMessageBox({
+            type: 'info',
+            title: 'プライバシーについて',
+            message: 'Desktop Plant のデータ収集について',
+            detail: [
+              'このアプリはキーボード・マウスの操作量を計測し、植物の成長ポイントに変換します。',
+              '',
+              '• 入力内容（文字・キー名）は記録しません',
+              '• 操作データは端末内にのみ保存されます',
+              '• 外部へのデータ送信は一切行いません'
+            ].join('\n'),
+            buttons: ['閉じる']
+          })
+        }
+      },
+      { type: 'separator' },
+      { label: '終了', click: (): void => app.quit() }
+    ])
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) menu.popup({ window: win })
   })
 
   createWindow()

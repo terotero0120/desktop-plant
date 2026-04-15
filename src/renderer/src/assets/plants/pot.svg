@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Pot body (trapezoid) -->
+  <path d="M50 258 L62 287 L138 287 L150 258 Z" fill="#c1440e"/>
+
+  <!-- Pot left highlight -->
+  <path d="M50 258 L62 287 L74 287 L62 258 Z" fill="#d4520e" opacity="0.5"/>
+
+  <!-- Pot right shadow -->
+  <path d="M138 287 L150 258 L142 258 L130 287 Z" fill="#8a2e06" opacity="0.55"/>
+
+  <!-- Bottom base -->
+  <rect x="59" y="284" width="82" height="6" rx="3" fill="#a83a08"/>
+
+  <!-- Rim -->
+  <rect x="40" y="242" width="120" height="18" rx="5" fill="#d4541e"/>
+
+  <!-- Rim shadow strip -->
+  <rect x="40" y="255" width="120" height="5" rx="2" fill="#a03810" opacity="0.5"/>
+
+  <!-- Soil -->
+  <ellipse cx="100" cy="246" rx="53" ry="9" fill="#3d1e06"/>
+
+  <!-- Soil highlight -->
+  <ellipse cx="88" cy="244" rx="24" ry="4" fill="#5a2e0e" opacity="0.55"/>
+</svg>

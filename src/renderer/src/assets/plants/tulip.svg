@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="94" y="140" width="12" height="120" rx="6" fill="#5a9a3a"/>
+
+  <!-- Left leaf (long, strap-like) -->
+  <path d="M97 218 Q70 202 63 172 Q82 187 97 204 Z" fill="#4d8f2e"/>
+
+  <!-- Right leaf -->
+  <path d="M103 240 Q132 220 138 188 Q118 206 103 226 Z" fill="#4d8f2e"/>
+
+  <!-- Tulip flower -->
+  <!-- Back center petal (drawn first, behind) -->
+  <path d="M88 138 Q82 103 100 74 Q118 103 112 138 Z" fill="#d42070"/>
+
+  <!-- Left outer petal -->
+  <path d="M88 138 Q60 114 66 82 Q83 66 100 78 Q94 108 90 138 Z" fill="#e8308a"/>
+
+  <!-- Right outer petal -->
+  <path d="M112 138 Q140 114 134 82 Q117 66 100 78 Q106 108 110 138 Z" fill="#e8308a"/>
+
+  <!-- Inner depth shading -->
+  <path d="M95 136 Q90 107 100 80 Q110 107 105 136 Q100 130 95 136 Z" fill="#b81860" opacity="0.45"/>
+
+  <!-- Petal base -->
+  <ellipse cx="100" cy="137" rx="13" ry="5" fill="#b01858"/>
+</svg>

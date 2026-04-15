@@ -1,34 +1,73 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useState, useEffect } from 'react'
+import type { GrowthStage, PlantId, PlantState } from '../../main/store'
+import { IPC_CHANNELS } from '../../main/store'
+import potSvg from './assets/plants/pot.svg'
+import seedlingSvg from './assets/plants/seedling.svg'
+import budSvg from './assets/plants/bud.svg'
+import roseSvg from './assets/plants/rose.svg'
+import sunflowerSvg from './assets/plants/sunflower.svg'
+import tulipSvg from './assets/plants/tulip.svg'
+
+const plantImages: Record<GrowthStage | PlantId, string> = {
+  seedling: seedlingSvg,
+  bud: budSvg,
+  bloom: seedlingSvg, // unreachable: bloom always has a bloomedPlantId
+  rose: roseSvg,
+  sunflower: sunflowerSvg,
+  tulip: tulipSvg
+}
+
+function getPlantImage(state: PlantState): string {
+  if (state.growthStage === 'bloom' && state.bloomedPlantId) {
+    return plantImages[state.bloomedPlantId]
+  }
+  return plantImages[state.growthStage]
+}
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [state, setState] = useState<PlantState>({
+    totalPoints: 0,
+    growthStage: 'seedling',
+    bloomedPlantId: null
+  })
+
+  useEffect(() => {
+    window.electron.ipcRenderer.invoke(IPC_CHANNELS.GET_STATE).then((s: PlantState) => {
+      setState(s)
+    })
+
+    const removeStateListener = window.electron.ipcRenderer.on(
+      IPC_CHANNELS.STATE_UPDATE,
+      (_e, s: PlantState) => {
+        setState(s)
+      }
+    )
+
+    const onContextMenu = (e: MouseEvent): void => {
+      e.preventDefault()
+      window.electron.ipcRenderer.send(IPC_CHANNELS.SHOW_CONTEXT_MENU)
+    }
+    window.addEventListener('contextmenu', onContextMenu)
+
+    return () => {
+      removeStateListener()
+      window.removeEventListener('contextmenu', onContextMenu)
+    }
+  }, [])
+
+  const layerStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '200px',
+    height: '300px'
+  }
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
+    <div style={{ position: 'relative', width: '200px', height: '300px' }}>
+      <img src={getPlantImage(state)} alt="plant" style={layerStyle} />
+      <img src={potSvg} alt="pot" style={layerStyle} />
+    </div>
   )
 }
 

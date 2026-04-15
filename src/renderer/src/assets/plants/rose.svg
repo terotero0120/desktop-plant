@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="94" y="140" width="12" height="120" rx="6" fill="#5a9a3a"/>
+
+  <!-- Thorns -->
+  <path d="M94 222 L80 213 L94 218 Z" fill="#4d8f2e"/>
+  <path d="M106 244 L120 235 L106 240 Z" fill="#4d8f2e"/>
+
+  <!-- Left leaf -->
+  <path d="M94 192 Q56 174 50 152 Q72 159 94 176 Z" fill="#4d8f2e"/>
+  <line x1="94" y1="192" x2="58" y2="163" stroke="#3d7a1e" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Right leaf -->
+  <path d="M106 212 Q144 194 150 172 Q128 180 106 197 Z" fill="#4d8f2e"/>
+  <line x1="106" y1="212" x2="142" y2="180" stroke="#3d7a1e" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Rose petals (layered, centered at 100,92) -->
+  <g transform="translate(100, 92)">
+    <!-- Outer petals (5, at 72° intervals) -->
+    <ellipse cx="0" cy="-30" rx="15" ry="22" fill="#e83535" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-30" rx="15" ry="22" fill="#e83535" transform="rotate(72)"/>
+    <ellipse cx="0" cy="-30" rx="15" ry="22" fill="#e83535" transform="rotate(144)"/>
+    <ellipse cx="0" cy="-30" rx="15" ry="22" fill="#e83535" transform="rotate(216)"/>
+    <ellipse cx="0" cy="-30" rx="15" ry="22" fill="#e83535" transform="rotate(288)"/>
+
+    <!-- Mid petals (5, offset 36°) -->
+    <ellipse cx="0" cy="-20" rx="12" ry="16" fill="#c82020" transform="rotate(36)"/>
+    <ellipse cx="0" cy="-20" rx="12" ry="16" fill="#c82020" transform="rotate(108)"/>
+    <ellipse cx="0" cy="-20" rx="12" ry="16" fill="#c82020" transform="rotate(180)"/>
+    <ellipse cx="0" cy="-20" rx="12" ry="16" fill="#c82020" transform="rotate(252)"/>
+    <ellipse cx="0" cy="-20" rx="12" ry="16" fill="#c82020" transform="rotate(324)"/>
+
+    <!-- Center -->
+    <circle cx="0" cy="0" r="14" fill="#9e1212"/>
+    <circle cx="-2" cy="-2" r="8" fill="#b01a1a"/>
+    <circle cx="1" cy="1" r="4" fill="#8a0e0e"/>
+  </g>
+</svg>
