@@ -2,11 +2,13 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   getState, incrementPoints, updateState, flushState,
   checkGrowth, resetPlant,
+  getCollection, recordBloom, flushCollection, resetCollection,
   PLANT_IDS, BUD_THRESHOLD, GROWTH_THRESHOLD
 } from '../store'
 
 beforeEach(() => {
   resetPlant()
+  resetCollection()
 })
 
 describe('getState', () => {
@@ -154,5 +156,74 @@ describe('resetPlant', () => {
     resetPlant()
     incrementPoints(10)
     expect(getState().totalPoints).toBe(10)
+  })
+})
+
+describe('getCollection', () => {
+  it('初期状態では空配列を返す', () => {
+    expect(getCollection()).toEqual([])
+  })
+
+  it('コピーを返す（外部変更がコレクションに影響しない）', () => {
+    recordBloom('rose')
+    const col = getCollection()
+    col[0].totalBlooms = 999
+    expect(getCollection()[0].totalBlooms).toBe(1)
+  })
+})
+
+describe('recordBloom', () => {
+  it('新種の開花でエントリが追加される', () => {
+    recordBloom('rose')
+    const col = getCollection()
+    expect(col).toHaveLength(1)
+    expect(col[0].plantId).toBe('rose')
+    expect(col[0].totalBlooms).toBe(1)
+    expect(col[0].firstBloomed).toBeTruthy()
+  })
+
+  it('同種の2回目の開花で totalBlooms がインクリメントされる', () => {
+    recordBloom('rose')
+    recordBloom('rose')
+    const col = getCollection()
+    expect(col).toHaveLength(1)
+    expect(col[0].totalBlooms).toBe(2)
+  })
+
+  it('異種の開花で別エントリが追加される', () => {
+    recordBloom('rose')
+    recordBloom('sunflower')
+    expect(getCollection()).toHaveLength(2)
+  })
+
+  it('firstBloomed は ISO 8601 形式の文字列である', () => {
+    recordBloom('tulip')
+    const { firstBloomed } = getCollection()[0]
+    expect(() => new Date(firstBloomed)).not.toThrow()
+    expect(new Date(firstBloomed).toISOString()).toBe(firstBloomed)
+  })
+})
+
+describe('flushCollection', () => {
+  it('_store が未初期化（initStore 未呼び出し）のとき何もしない', () => {
+    expect(() => flushCollection()).not.toThrow()
+  })
+})
+
+describe('incrementPoints + コレクション登録', () => {
+  it('bloom 遷移時に getCollection にエントリが追加される', () => {
+    updateState({ growthStage: 'bud', totalPoints: GROWTH_THRESHOLD - 1 })
+    incrementPoints(1)
+    expect(getState().growthStage).toBe('bloom')
+    const col = getCollection()
+    expect(col).toHaveLength(1)
+    expect(PLANT_IDS).toContain(col[0].plantId)
+    expect(col[0].totalBlooms).toBe(1)
+  })
+
+  it('bloom 中の incrementPoints ではコレクションが変化しない', () => {
+    updateState({ growthStage: 'bloom', totalPoints: GROWTH_THRESHOLD, bloomedPlantId: 'rose' })
+    incrementPoints(100)
+    expect(getCollection()).toHaveLength(0)
   })
 })

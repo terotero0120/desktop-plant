@@ -1,8 +1,8 @@
 // electron-store v8 は ESM-only のため dynamic import を使用する
 
-import type { PlantId, PlantState } from '../shared/ipc'
+import type { CollectionEntry, PlantId, PlantState } from '../shared/ipc'
 import { PLANT_IDS } from '../shared/ipc'
-export type { GrowthStage, PlantId, PlantState } from '../shared/ipc'
+export type { CollectionEntry, GrowthStage, PlantId, PlantState } from '../shared/ipc'
 export { PLANT_IDS, IPC_CHANNELS } from '../shared/ipc'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -27,23 +27,39 @@ export function checkGrowth(pickRandom: PickRandom = pickRandomDefault): void {
 }
 
 export function resetPlant(): void {
-  _state = { ...DEFAULTS }
+  _state = { ...PLANT_DEFAULTS }
 }
 
-const DEFAULTS: PlantState = {
+export function resetCollection(): void {
+  _collection = []
+}
+
+const PLANT_DEFAULTS: PlantState = {
   totalPoints: 0,
   growthStage: 'seedling',
   bloomedPlantId: null
 }
 
+interface AppStore {
+  plant: PlantState
+  collection: CollectionEntry[]
+}
+
+const APP_DEFAULTS: AppStore = {
+  plant: { ...PLANT_DEFAULTS },
+  collection: []
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _store: any = null
-let _state: PlantState = { ...DEFAULTS }
+let _state: PlantState = { ...PLANT_DEFAULTS }
+let _collection: CollectionEntry[] = []
 
 export async function initStore(): Promise<void> {
   const { default: Store } = await import('electron-store')
-  _store = new Store<PlantState>({ defaults: DEFAULTS })
-  _state = _store.store as PlantState
+  _store = new Store<AppStore>({ defaults: APP_DEFAULTS })
+  _state = _store.get('plant') as PlantState
+  _collection = _store.get('collection') as CollectionEntry[]
   const stageBefore = _state.growthStage
   checkGrowth()
   if (_state.growthStage !== stageBefore) {
@@ -55,10 +71,28 @@ export function getState(): PlantState {
   return { ..._state }
 }
 
+export function getCollection(): CollectionEntry[] {
+  return _collection.map((e) => ({ ...e }))
+}
+
+export function recordBloom(plantId: PlantId): void {
+  const existing = _collection.find((e) => e.plantId === plantId)
+  if (existing) {
+    existing.totalBlooms++
+  } else {
+    _collection.push({ plantId, firstBloomed: new Date().toISOString(), totalBlooms: 1 })
+  }
+  flushCollection()
+}
+
 export function incrementPoints(delta: number): void {
   if (_state.growthStage === 'bloom') return
   _state.totalPoints += delta
   checkGrowth()
+  if (_state.bloomedPlantId !== null) {
+    recordBloom(_state.bloomedPlantId)
+    flushState()
+  }
 }
 
 export function updateState(updates: Partial<PlantState>): void {
@@ -67,5 +101,10 @@ export function updateState(updates: Partial<PlantState>): void {
 
 export function flushState(): void {
   if (!_store) return
-  _store.store = _state
+  _store.set('plant', _state)
+}
+
+export function flushCollection(): void {
+  if (!_store) return
+  _store.set('collection', _collection)
 }
