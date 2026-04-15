@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CollectionEntry, PlantId } from '../../shared/ipc'
 import { IPC_CHANNELS, PLANT_IDS } from '../../shared/ipc'
 import roseSvg from './assets/plants/rose.svg'
@@ -29,28 +29,14 @@ function formatDate(iso: string): string {
 export default function CollectionView(): React.JSX.Element {
   const [collection, setCollection] = useState<CollectionEntry[]>([])
 
-  useLayoutEffect(() => {
-    const html = document.documentElement
-    const body = document.body
-    html.style.width = '100%'
-    html.style.height = '100%'
-    body.style.width = '100%'
-    body.style.height = '100%'
-    body.style.minHeight = '100vh'
-    body.style.overflowY = 'auto'
-    body.style.userSelect = 'auto'
-    body.style.background = 'var(--color-background)'
-    const root = document.getElementById('root')
-    if (root) {
-      root.style.width = '100%'
-      root.style.height = '100%'
-    }
-  }, [])
-
   useEffect(() => {
     window.electron.ipcRenderer
       .invoke(IPC_CHANNELS.GET_COLLECTION)
       .then((entries: CollectionEntry[]) => setCollection(entries))
+      .catch((error) => {
+        console.error('Failed to load collection:', error)
+        setCollection([])
+      })
   }, [])
 
   const obtained = collection.length
@@ -117,7 +103,10 @@ const styles: Record<string, React.CSSProperties> = {
   list: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px'
+    gap: '8px',
+    listStyle: 'none',
+    padding: 0,
+    margin: 0
   },
   item: {
     display: 'flex',

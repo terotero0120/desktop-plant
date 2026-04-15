@@ -37,6 +37,7 @@ function createCollectionWindow(): void {
     width: 480,
     height: 600,
     title: '図鑑',
+    autoHideMenuBar: true,
     webPreferences: COMMON_WEB_PREFERENCES
   })
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

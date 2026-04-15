@@ -157,6 +157,13 @@ describe('resetPlant', () => {
     incrementPoints(10)
     expect(getState().totalPoints).toBe(10)
   })
+
+  it('コレクションには影響しない（図鑑はリセットされない）', () => {
+    recordBloom('rose')
+    resetPlant()
+    expect(getCollection()).toHaveLength(1)
+    expect(getCollection()[0].plantId).toBe('rose')
+  })
 })
 
 describe('getCollection', () => {
