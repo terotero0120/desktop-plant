@@ -61,7 +61,9 @@ export function getState(): PlantState {
 }
 
 export function incrementPoints(delta: number): void {
+  if (_state.growthStage === 'bloom') return
   _state.totalPoints += delta
+  checkGrowth()
 }
 
 export function updateState(updates: Partial<PlantState>): void {

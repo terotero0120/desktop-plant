@@ -45,6 +45,32 @@ describe('incrementPoints', () => {
   })
 })
 
+describe('incrementPoints + 成長遷移', () => {
+  it('BUD_THRESHOLD に達したとき bud に自動遷移する', () => {
+    incrementPoints(BUD_THRESHOLD)
+    expect(getState().growthStage).toBe('bud')
+  })
+
+  it('GROWTH_THRESHOLD に達したとき bloom に自動遷移する', () => {
+    updateState({ growthStage: 'bud', totalPoints: GROWTH_THRESHOLD - 1 })
+    incrementPoints(1)
+    expect(getState().growthStage).toBe('bloom')
+    expect(getState().bloomedPlantId).not.toBeNull()
+  })
+
+  it('bloom 中は totalPoints が加算されない', () => {
+    updateState({ growthStage: 'bloom', totalPoints: GROWTH_THRESHOLD, bloomedPlantId: 'rose' })
+    incrementPoints(100)
+    expect(getState().totalPoints).toBe(GROWTH_THRESHOLD)
+  })
+
+  it('bloom 中の加算は bloomedPlantId を変えない', () => {
+    updateState({ growthStage: 'bloom', totalPoints: GROWTH_THRESHOLD, bloomedPlantId: 'rose' })
+    incrementPoints(1)
+    expect(getState().bloomedPlantId).toBe('rose')
+  })
+})
+
 describe('updateState', () => {
   it('部分更新をマージする', () => {
     updateState({ totalPoints: 42 })
