@@ -40,6 +40,8 @@ function resetIdle(): void {
 }
 
 function addPoints(pts: number): void {
+  // すべての呼び出し元（keydown/click/mousemove ハンドラ）は addPoints の前に resetIdle() を呼ぶため
+  // isIdle=true がここに到達するのは将来の呼び出し元がその規約を破った場合のみ（安全網）
   if (isIdle) return
   incrementPoints(pts)
   schedulePush()
