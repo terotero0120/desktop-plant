@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, Tray, Menu, nativeImage, screen, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { initStore, getState, resetPlant, IPC_CHANNELS } from './store'
+import { initStore, getState, resetPlant, flushState, IPC_CHANNELS } from './store'
 import { initInputEngine, stopInputEngine } from './inputEngine'
 
 const WINDOW_WIDTH = 200
@@ -99,6 +99,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle(IPC_CHANNELS.PLANT_NEXT_SEED, () => {
     resetPlant()
+    flushState()
     const state = getState()
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send(IPC_CHANNELS.STATE_UPDATE, state)
