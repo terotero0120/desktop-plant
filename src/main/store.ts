@@ -1,24 +1,13 @@
 // electron-store v8 は ESM-only のため dynamic import を使用する
 
-export type GrowthStage = 'seedling' | 'bud' | 'bloom'
+import type { PlantId, PlantState } from '../shared/ipc'
+import { PLANT_IDS } from '../shared/ipc'
+export type { GrowthStage, PlantId, PlantState } from '../shared/ipc'
+export { PLANT_IDS, IPC_CHANNELS } from '../shared/ipc'
 
-export const GROWTH_THRESHOLD = 15_000
+const isDev = process.env.NODE_ENV === 'development'
+export const GROWTH_THRESHOLD = isDev ? 1_000 : 15_000
 export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5
-
-export const PLANT_IDS = ['rose', 'sunflower', 'tulip'] as const
-export type PlantId = (typeof PLANT_IDS)[number]
-
-export interface PlantState {
-  totalPoints: number
-  growthStage: GrowthStage
-  bloomedPlantId: PlantId | null
-}
-
-export const IPC_CHANNELS = {
-  GET_STATE: 'plant:get-state',
-  STATE_UPDATE: 'plant:state-update',
-  PLANT_NEXT_SEED: 'plant:next-seed'
-} as const
 
 type PickRandom = (ids: readonly PlantId[]) => PlantId
 

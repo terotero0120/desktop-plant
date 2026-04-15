@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="94" y="140" width="12" height="120" rx="6" fill="#5a9a3a"/>
+
+  <!-- Left leaf -->
+  <path d="M94 202 Q56 184 50 162 Q72 169 94 186 Z" fill="#4d8f2e"/>
+  <line x1="94" y1="202" x2="58" y2="173" stroke="#3d7a1e" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Bud: yellow inner petals (behind sepal) -->
+  <ellipse cx="100" cy="122" rx="11" ry="22" fill="#ffd600"/>
+  <ellipse cx="100" cy="112" rx="7" ry="14" fill="#ffe84a" opacity="0.75"/>
+
+  <!-- Bud: green sepal body (overlaps lower portion of yellow) -->
+  <ellipse cx="100" cy="134" rx="13" ry="16" fill="#5a9a3a"/>
+
+  <!-- Sepal tips -->
+  <path d="M87 138 Q82 120 92 110 Q92 124 93 137 Z" fill="#4d8f2e"/>
+  <path d="M113 138 Q118 120 108 110 Q108 124 107 137 Z" fill="#4d8f2e"/>
+  <path d="M100 109 Q94 120 97 134 Q100 128 103 134 Q106 120 100 109 Z" fill="#3d7a1e"/>
+</svg>
