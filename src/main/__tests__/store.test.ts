@@ -13,6 +13,7 @@ import {
   getConsent,
   setConsent,
   resetConsent,
+  flushConsent,
   PLANT_IDS,
   BUD_THRESHOLD,
   GROWTH_THRESHOLD,
@@ -264,6 +265,12 @@ describe("consent", () => {
     setConsent();
     resetConsent();
     expect(getConsent()).toBe(false);
+  });
+});
+
+describe("flushConsent", () => {
+  it("_store が未初期化（initStore 未呼び出し）のとき何もしない", () => {
+    expect(() => flushConsent()).not.toThrow();
   });
 });
 
