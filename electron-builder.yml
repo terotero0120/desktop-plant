@@ -14,14 +14,11 @@ asarUnpack:
 win:
   executableName: desktop-plant
   target:
-    - target: nsis
+    - target: zip
       arch:
         - arm64
-nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
+# nsis は Windows 上でのみビルド可能（Wine 不要な zip を ARM64 動作確認に使用）
+# ARM64 確認後に x64 を追加し、正式リリース時は nsis に切り替える
 mac:
   identity: '-'
   entitlementsInherit: build/entitlements.mac.plist
