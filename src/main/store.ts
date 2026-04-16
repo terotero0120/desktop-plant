@@ -51,11 +51,13 @@ const PLANT_DEFAULTS: PlantState = {
 interface AppStore {
   plant: PlantState;
   collection: CollectionEntry[];
+  privacyConsent: boolean;
 }
 
 const APP_DEFAULTS: AppStore = {
   plant: { ...PLANT_DEFAULTS },
   collection: [],
+  privacyConsent: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,11 +65,14 @@ let _store: any = null;
 let _state: PlantState = { ...PLANT_DEFAULTS };
 let _collection: CollectionEntry[] = [];
 
+let _privacyConsent: boolean = false;
+
 export async function initStore(): Promise<void> {
   const { default: Store } = await import("electron-store");
   _store = new Store<AppStore>({ defaults: APP_DEFAULTS });
   _state = _store.get("plant") as PlantState;
   _collection = _store.get("collection") as CollectionEntry[];
+  _privacyConsent = _store.get("privacyConsent") as boolean;
   const stageBefore = _state.growthStage;
   checkGrowth();
   if (_state.growthStage !== stageBefore) {
@@ -122,4 +127,21 @@ export function flushState(): void {
 export function flushCollection(): void {
   if (!_store) return;
   _store.set("collection", _collection);
+}
+
+export function getConsent(): boolean {
+  return _privacyConsent;
+}
+
+export function setConsent(): void {
+  _privacyConsent = true;
+}
+
+export function flushConsent(): void {
+  if (!_store) return;
+  _store.set("privacyConsent", _privacyConsent);
+}
+
+export function resetConsent(): void {
+  _privacyConsent = false;
 }

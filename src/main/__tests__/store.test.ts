@@ -10,6 +10,9 @@ import {
   recordBloom,
   flushCollection,
   resetCollection,
+  getConsent,
+  setConsent,
+  resetConsent,
   PLANT_IDS,
   BUD_THRESHOLD,
   GROWTH_THRESHOLD,
@@ -18,6 +21,7 @@ import {
 beforeEach(() => {
   resetPlant();
   resetCollection();
+  resetConsent();
 });
 
 describe("getState", () => {
@@ -243,6 +247,23 @@ describe("recordBloom", () => {
 describe("flushCollection", () => {
   it("_store が未初期化（initStore 未呼び出し）のとき何もしない", () => {
     expect(() => flushCollection()).not.toThrow();
+  });
+});
+
+describe("consent", () => {
+  it("初期状態では同意フラグが false である", () => {
+    expect(getConsent()).toBe(false);
+  });
+
+  it("setConsent() を呼ぶと true になる", () => {
+    setConsent();
+    expect(getConsent()).toBe(true);
+  });
+
+  it("resetConsent() で false に戻る", () => {
+    setConsent();
+    resetConsent();
+    expect(getConsent()).toBe(false);
   });
 });
 
