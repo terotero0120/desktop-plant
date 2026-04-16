@@ -213,7 +213,7 @@ app.whenReady().then(async () => {
       { label: "次のタネを植える", click: doNextSeed },
       { label: "図鑑", click: createCollectionWindow },
       {
-        label: "プライバシー",
+        label: "プライバシーについて",
         click: (): void => {
           void showPrivacyDialog();
         },
