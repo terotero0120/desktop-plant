@@ -3,6 +3,7 @@
     "allow": [
       "Edit(*)",
       "Write(*)",
+      "Bash(*)",
       "WebFetch(domain:*)",
       "WebSearch",
       "mcp__*"
@@ -38,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c);process.stdin.on(\"end\",()=>{const j=JSON.parse(d);const f=(j.tool_input||{}).file_path||\"\";if(!f||!/\\.(ts|tsx|js|jsx|mjs|cjs|mts)$/.test(f))return;require(\"child_process\").spawnSync(\"npx\",[\"eslint\",\"--fix\",f],{stdio:\"inherit\"});})' || true",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; echo \"$f\" | grep -qE '\\.(ts|tsx|js|jsx|mjs|cjs|mts)$' && npx eslint --fix \"$f\"; } 2>/dev/null || true",
             "statusMessage": "ESLint auto-fix..."
           }
         ]
