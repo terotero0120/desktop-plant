@@ -1,27 +1,22 @@
 import { useState, useEffect } from "react";
-import type { GrowthStage, PlantId, PlantState } from "../../shared/ipc";
+import type { GrowthStage, PlantState } from "../../shared/ipc";
 import { IPC_CHANNELS } from "../../shared/ipc";
 import potSvg from "./assets/plants/pot.svg";
 import seedlingSvg from "./assets/plants/seedling.svg";
 import budSvg from "./assets/plants/bud.svg";
-import roseSvg from "./assets/plants/rose.svg";
-import sunflowerSvg from "./assets/plants/sunflower.svg";
-import tulipSvg from "./assets/plants/tulip.svg";
+import { PLANT_REGISTRY } from "./plantRegistry";
 
-const plantImages: Record<GrowthStage | PlantId, string> = {
+const stageImages: Record<GrowthStage, string> = {
   seedling: seedlingSvg,
   bud: budSvg,
   bloom: seedlingSvg, // unreachable: bloom always has a bloomedPlantId
-  rose: roseSvg,
-  sunflower: sunflowerSvg,
-  tulip: tulipSvg,
 };
 
 function getPlantImage(state: PlantState): string {
   if (state.growthStage === "bloom" && state.bloomedPlantId) {
-    return plantImages[state.bloomedPlantId];
+    return PLANT_REGISTRY[state.bloomedPlantId].svg;
   }
-  return plantImages[state.growthStage];
+  return stageImages[state.growthStage];
 }
 
 function App(): React.JSX.Element {

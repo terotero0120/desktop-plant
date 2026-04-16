@@ -96,6 +96,9 @@ function createTray(onNextSeed: () => void): void {
   const iconImage = nativeImage.createFromPath(
     join(__dirname, "../../resources/icon.png"),
   );
+  if (process.platform === "darwin") {
+    iconImage.setTemplateImage(true);
+  }
 
   tray = new Tray(iconImage);
   tray.setToolTip("Desktop Plant");
