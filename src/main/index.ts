@@ -52,8 +52,10 @@ async function showPrivacyDialog(): Promise<void> {
   await dialog.showMessageBox({
     type: "info",
     title: "プライバシーについて",
-    message: "Desktop Plant のデータ収集について",
+    message: "プライバシーについて",
     detail: [
+      "Desktop Plant のデータ収集について",
+      "",
       "このアプリはキーボード・マウスの操作量を計測し、植物の成長ポイントに変換します。",
       "",
       "• 入力内容（文字・キー名）は記録しません",
