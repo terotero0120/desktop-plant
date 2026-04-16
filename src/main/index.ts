@@ -90,7 +90,7 @@ function createCollectionWindow(): void {
   });
 }
 
-function createTray(): void {
+function createTray(onNextSeed: () => void): void {
   const iconImage = nativeImage.createFromPath(
     join(__dirname, "../../resources/icon.png"),
   );
@@ -99,12 +99,16 @@ function createTray(): void {
   tray.setToolTip("Desktop Plant");
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: "次のタネを植える", click: onNextSeed },
+    { label: "図鑑", click: createCollectionWindow },
     {
-      label: "Quit",
+      label: "プライバシーについて",
       click: (): void => {
-        app.quit();
+        void showPrivacyDialog();
       },
     },
+    { type: "separator" },
+    { label: "終了", click: (): void => app.quit() },
   ]);
 
   tray.setContextMenu(contextMenu);
@@ -222,7 +226,7 @@ app.whenReady().then(async () => {
   });
 
   createWindow();
-  createTray();
+  createTray(doNextSeed);
   initInputEngine(() => mainWindow);
 
   app.on("activate", () => {
