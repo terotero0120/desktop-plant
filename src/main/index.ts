@@ -18,6 +18,9 @@ import {
   resetPlant,
   flushState,
   IPC_CHANNELS,
+  getConsent,
+  setConsent,
+  flushConsent,
 } from "./store";
 import { initInputEngine, stopInputEngine } from "./inputEngine";
 
@@ -43,6 +46,22 @@ function applyOverlaySettings(win: BrowserWindow): void {
   if (process.platform === "darwin") {
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   }
+}
+
+async function showPrivacyDialog(): Promise<void> {
+  await dialog.showMessageBox({
+    type: "info",
+    title: "プライバシーについて",
+    message: "Desktop Plant のデータ収集について",
+    detail: [
+      "このアプリはキーボード・マウスの操作量を計測し、植物の成長ポイントに変換します。",
+      "",
+      "• 入力内容（文字・キー名）は記録しません",
+      "• 操作データは端末内にのみ保存されます",
+      "• 外部へのデータ送信は一切行いません",
+    ].join("\n"),
+    buttons: ["OK"],
+  });
 }
 
 function createCollectionWindow(): void {
@@ -162,6 +181,12 @@ app.whenReady().then(async () => {
     return;
   }
 
+  if (!getConsent()) {
+    await showPrivacyDialog();
+    setConsent();
+    flushConsent();
+  }
+
   ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState());
   ipcMain.handle(IPC_CHANNELS.GET_COLLECTION, () => getCollection());
 
@@ -186,19 +211,7 @@ app.whenReady().then(async () => {
       {
         label: "プライバシー",
         click: (): void => {
-          dialog.showMessageBox({
-            type: "info",
-            title: "プライバシーについて",
-            message: "Desktop Plant のデータ収集について",
-            detail: [
-              "このアプリはキーボード・マウスの操作量を計測し、植物の成長ポイントに変換します。",
-              "",
-              "• 入力内容（文字・キー名）は記録しません",
-              "• 操作データは端末内にのみ保存されます",
-              "• 外部へのデータ送信は一切行いません",
-            ].join("\n"),
-            buttons: ["閉じる"],
-          });
+          void showPrivacyDialog();
         },
       },
       { type: "separator" },
