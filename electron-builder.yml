@@ -13,6 +13,10 @@ asarUnpack:
   - resources/**
 win:
   executableName: desktop-plant
+  target:
+    - target: nsis
+      arch:
+        - arm64
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
