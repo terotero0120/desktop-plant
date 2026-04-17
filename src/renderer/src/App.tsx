@@ -24,6 +24,7 @@ function App(): React.JSX.Element {
     totalPoints: 0,
     growthStage: "seedling",
     bloomedPlantId: null,
+    startedAt: null,
   });
 
   useEffect(() => {

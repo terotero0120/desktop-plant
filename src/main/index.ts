@@ -22,7 +22,10 @@ import {
   getConsent,
   setConsent,
   flushConsent,
+  BUD_THRESHOLD,
+  GROWTH_THRESHOLD,
 } from "./store";
+import { PLANT_NAMES } from "../shared/plantNames";
 import { initInputEngine, stopInputEngine } from "./inputEngine";
 
 const WINDOW_WIDTH = 200;
@@ -89,6 +92,64 @@ async function initInputEngineWithPermissionCheck(
   }
 }
 
+function buildStatusLines(now = Date.now()): string {
+  const state = getState();
+
+  const stageLabel: Record<string, string> = {
+    seedling: "苗",
+    bud: "蕾",
+    bloom: `開花中（${state.bloomedPlantId ? PLANT_NAMES[state.bloomedPlantId] : ""}）`,
+  };
+  const lines: string[] = [
+    `🌱 状態: ${stageLabel[state.growthStage] ?? state.growthStage}`,
+  ];
+
+  if (state.growthStage === "seedling") {
+    const remaining = Math.max(0, BUD_THRESHOLD - state.totalPoints);
+    lines.push(`📈 あと ${remaining}pt で蕾`);
+  } else if (state.growthStage === "bud") {
+    const remaining = Math.max(0, GROWTH_THRESHOLD - state.totalPoints);
+    lines.push(`📈 あと ${remaining}pt で開花`);
+  }
+
+  if (state.startedAt !== null) {
+    const d = new Date(state.startedAt);
+    const pad = (n: number): string => String(n).padStart(2, "0");
+    const dateStr = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    lines.push(`📅 育て始め: ${dateStr}`);
+
+    const sDate = new Date(state.startedAt);
+    const nDate = new Date(now);
+    const sMidnight = new Date(
+      sDate.getFullYear(),
+      sDate.getMonth(),
+      sDate.getDate(),
+    ).getTime();
+    const nMidnight = new Date(
+      nDate.getFullYear(),
+      nDate.getMonth(),
+      nDate.getDate(),
+    ).getTime();
+    const day = Math.floor((nMidnight - sMidnight) / 86400000) + 1;
+    lines.push(`🗓 ${day}日目`);
+  } else {
+    lines.push("📅 育て始め: 不明");
+  }
+
+  return lines.join("\n");
+}
+
+async function showStatusDialog(win?: BrowserWindow | null): Promise<void> {
+  const opts = {
+    type: "info" as const,
+    title: "植物のステータス",
+    message: "植物のステータス",
+    detail: buildStatusLines(),
+    buttons: ["OK"],
+  };
+  await (win ? dialog.showMessageBox(win, opts) : dialog.showMessageBox(opts));
+}
+
 async function showPrivacyDialog(): Promise<void> {
   await dialog.showMessageBox({
     type: "info",
@@ -145,6 +206,12 @@ function createTray(onNextSeed: () => void): void {
   tray.setToolTip("Desktop Plant");
 
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "ステータスを見る",
+      click: (): void => {
+        void showStatusDialog(mainWindow);
+      },
+    },
     { label: "次のタネを植える", click: onNextSeed },
     { label: "図鑑", click: createCollectionWindow },
     {
@@ -255,7 +322,14 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
     const menu = Menu.buildFromTemplate([
+      {
+        label: "ステータスを見る",
+        click: (): void => {
+          void showStatusDialog(win);
+        },
+      },
       { label: "次のタネを植える", click: doNextSeed },
       { label: "図鑑", click: createCollectionWindow },
       {
@@ -267,7 +341,6 @@ app.whenReady().then(async () => {
       { type: "separator" },
       { label: "終了", click: (): void => app.quit() },
     ]);
-    const win = BrowserWindow.fromWebContents(event.sender);
     if (win) menu.popup({ window: win });
   });
 

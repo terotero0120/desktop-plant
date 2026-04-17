@@ -7,6 +7,7 @@ export interface PlantState {
   totalPoints: number;
   growthStage: GrowthStage;
   bloomedPlantId: PlantId | null;
+  startedAt: number | null;
 }
 
 export interface CollectionEntry {
