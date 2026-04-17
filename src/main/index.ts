@@ -62,8 +62,8 @@ async function initInputEngineWithPermissionCheck(
     return;
   }
 
-  const { response } = await dialog.showMessageBox({
-    type: "warning",
+  const opts = {
+    type: "warning" as const,
     title: "アクセシビリティの権限が必要です",
     message:
       "キーボード・マウスの操作を検知するにはアクセシビリティの権限が必要です。",
@@ -77,7 +77,11 @@ async function initInputEngineWithPermissionCheck(
     ].join("\n"),
     buttons: ["システム設定を開く", "後で設定する"],
     defaultId: 0,
-  });
+  };
+  const win = getWindow();
+  const { response } = await (win
+    ? dialog.showMessageBox(win, opts)
+    : dialog.showMessageBox(opts));
   if (response === 0) {
     shell.openExternal(
       "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
