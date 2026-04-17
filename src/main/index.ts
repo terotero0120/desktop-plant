@@ -99,7 +99,7 @@ function createStatusWindow(): void {
   }
   statusWindow = new BrowserWindow({
     width: 360,
-    height: 290,
+    height: 435,
     title: "ステータス",
     autoHideMenuBar: true,
     resizable: false,
