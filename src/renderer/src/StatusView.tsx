@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import type { StatusInfo } from "../../shared/ipc";
 import { IPC_CHANNELS } from "../../shared/ipc";
 import { PLANT_REGISTRY } from "./plantRegistry";
-import seedlingSvg from "./assets/plants/seedling.svg";
-import budSvg from "./assets/plants/bud.svg";
 
 function calcDayNumber(startedAt: number): number {
   const s = new Date(startedAt);
@@ -50,19 +48,9 @@ export default function StatusView(): React.JSX.Element {
       ? "苗"
       : state.growthStage === "bud"
         ? "蕾"
-        : `開花中`;
-
-  const stageImg =
-    state.growthStage === "bloom" && state.bloomedPlantId
-      ? PLANT_REGISTRY[state.bloomedPlantId].svg
-      : state.growthStage === "bud"
-        ? budSvg
-        : seedlingSvg;
-
-  const bloomName =
-    state.growthStage === "bloom" && state.bloomedPlantId
-      ? PLANT_REGISTRY[state.bloomedPlantId].name
-      : null;
+        : state.bloomedPlantId
+          ? `開花中（${PLANT_REGISTRY[state.bloomedPlantId].name}）`
+          : "開花中";
 
   const remaining =
     state.growthStage === "seedling"
@@ -84,20 +72,11 @@ export default function StatusView(): React.JSX.Element {
         <span style={styles.title}>ステータス</span>
       </div>
 
-      <div style={styles.card}>
-        <img
-          src={stageImg}
-          alt={stageLabel}
-          style={styles.plantImg}
-          draggable={false}
-        />
-        <div style={styles.cardInfo}>
-          <span style={styles.stageName}>{stageLabel}</span>
-          {bloomName && <span style={styles.bloomName}>{bloomName}</span>}
-        </div>
-      </div>
-
       <ul style={styles.rows}>
+        <li style={styles.row}>
+          <span style={styles.rowLabel}>状態</span>
+          <span style={styles.rowValue}>{stageLabel}</span>
+        </li>
         {remaining !== null && nextLabel && (
           <li style={styles.row}>
             <span style={styles.rowLabel}>次の段階まで</span>
@@ -148,35 +127,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: "bold",
     color: "var(--color-text)",
   },
-  card: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    padding: "16px",
-    borderRadius: "8px",
-    background: "var(--color-background-soft)",
-    marginBottom: "12px",
-  },
-  plantImg: {
-    width: "56px",
-    height: "56px",
-    flexShrink: 0,
-    objectFit: "contain",
-  },
-  cardInfo: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-  },
-  stageName: {
-    fontSize: "22px",
-    fontWeight: "bold",
-    color: "var(--color-text)",
-  },
-  bloomName: {
-    fontSize: "14px",
-    color: "var(--ev-c-text-2)",
-  },
   rows: {
     listStyle: "none",
     padding: 0,
@@ -189,7 +139,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "10px 12px",
+    padding: "13px 12px",
     borderRadius: "6px",
     background: "var(--color-background-soft)",
   },
