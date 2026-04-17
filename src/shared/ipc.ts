@@ -7,6 +7,7 @@ export interface PlantState {
   totalPoints: number;
   growthStage: GrowthStage;
   bloomedPlantId: PlantId | null;
+  startedAt: number | null;
 }
 
 export interface CollectionEntry {
@@ -15,10 +16,17 @@ export interface CollectionEntry {
   totalBlooms: number;
 }
 
+export interface StatusInfo {
+  state: PlantState;
+  budThreshold: number;
+  growthThreshold: number;
+}
+
 export const IPC_CHANNELS = {
   GET_STATE: "plant:get-state",
   STATE_UPDATE: "plant:state-update",
   PLANT_NEXT_SEED: "plant:next-seed",
   SHOW_CONTEXT_MENU: "plant:show-context-menu",
   GET_COLLECTION: "plant:get-collection",
+  GET_STATUS: "plant:get-status",
 } as const;

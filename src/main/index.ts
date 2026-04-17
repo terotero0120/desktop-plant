@@ -22,6 +22,8 @@ import {
   getConsent,
   setConsent,
   flushConsent,
+  BUD_THRESHOLD,
+  GROWTH_THRESHOLD,
 } from "./store";
 import { initInputEngine, stopInputEngine } from "./inputEngine";
 
@@ -39,6 +41,7 @@ const COMMON_WEB_PREFERENCES = {
 
 let mainWindow: BrowserWindow | null = null;
 let collectionWindow: BrowserWindow | null = null;
+let statusWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
 function applyOverlaySettings(win: BrowserWindow): void {
@@ -87,6 +90,31 @@ async function initInputEngineWithPermissionCheck(
       "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
     );
   }
+}
+
+function createStatusWindow(): void {
+  if (statusWindow && !statusWindow.isDestroyed()) {
+    statusWindow.focus();
+    return;
+  }
+  statusWindow = new BrowserWindow({
+    width: 360,
+    height: 435,
+    title: "ステータス",
+    autoHideMenuBar: true,
+    resizable: false,
+    webPreferences: COMMON_WEB_PREFERENCES,
+  });
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    statusWindow.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}?view=status`);
+  } else {
+    statusWindow.loadFile(join(__dirname, "../renderer/index.html"), {
+      query: { view: "status" },
+    });
+  }
+  statusWindow.on("closed", () => {
+    statusWindow = null;
+  });
 }
 
 async function showPrivacyDialog(): Promise<void> {
@@ -146,7 +174,15 @@ function createTray(onNextSeed: () => void): void {
 
   const contextMenu = Menu.buildFromTemplate([
     { label: "次のタネを植える", click: onNextSeed },
-    { label: "図鑑", click: createCollectionWindow },
+    { type: "separator" },
+    {
+      label: "ステータスを見る",
+      click: (): void => {
+        createStatusWindow();
+      },
+    },
+    { label: "図鑑を見る", click: createCollectionWindow },
+    { type: "separator" },
     {
       label: "プライバシーについて",
       click: (): void => {
@@ -239,6 +275,11 @@ app.whenReady().then(async () => {
 
   ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState());
   ipcMain.handle(IPC_CHANNELS.GET_COLLECTION, () => getCollection());
+  ipcMain.handle(IPC_CHANNELS.GET_STATUS, () => ({
+    state: getState(),
+    budThreshold: BUD_THRESHOLD,
+    growthThreshold: GROWTH_THRESHOLD,
+  }));
 
   function doNextSeed(): void {
     resetPlant();
@@ -255,9 +296,18 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
     const menu = Menu.buildFromTemplate([
       { label: "次のタネを植える", click: doNextSeed },
-      { label: "図鑑", click: createCollectionWindow },
+      { type: "separator" },
+      {
+        label: "ステータスを見る",
+        click: (): void => {
+          createStatusWindow();
+        },
+      },
+      { label: "図鑑を見る", click: createCollectionWindow },
+      { type: "separator" },
       {
         label: "プライバシーについて",
         click: (): void => {
@@ -267,7 +317,6 @@ app.whenReady().then(async () => {
       { type: "separator" },
       { label: "終了", click: (): void => app.quit() },
     ]);
-    const win = BrowserWindow.fromWebContents(event.sender);
     if (win) menu.popup({ window: win });
   });
 

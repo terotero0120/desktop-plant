@@ -34,8 +34,8 @@ export function checkGrowth(pickRandom: PickRandom = pickRandomDefault): void {
   }
 }
 
-export function resetPlant(): void {
-  _state = { ...PLANT_DEFAULTS };
+export function resetPlant(now = Date.now()): void {
+  _state = { ...PLANT_DEFAULTS, startedAt: now };
 }
 
 export function resetCollection(): void {
@@ -46,6 +46,7 @@ const PLANT_DEFAULTS: PlantState = {
   totalPoints: 0,
   growthStage: "seedling",
   bloomedPlantId: null,
+  startedAt: null,
 };
 
 interface AppStore {
@@ -73,6 +74,10 @@ export async function initStore(): Promise<void> {
   _state = _store.get("plant") as PlantState;
   _collection = _store.get("collection") as CollectionEntry[];
   _privacyConsent = _store.get("privacyConsent") as boolean;
+  if (_state.startedAt === null && _state.totalPoints === 0) {
+    _state.startedAt = Date.now();
+    flushState();
+  }
   const stageBefore = _state.growthStage;
   checkGrowth();
   if (_state.growthStage !== stageBefore) {

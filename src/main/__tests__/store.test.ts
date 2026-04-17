@@ -181,6 +181,11 @@ describe("resetPlant", () => {
     expect(state.bloomedPlantId).toBeNull();
   });
 
+  it("clock 引数で startedAt が設定される", () => {
+    resetPlant(12345);
+    expect(getState().startedAt).toBe(12345);
+  });
+
   it("リセット後 incrementPoints が再び機能する", () => {
     updateState({
       growthStage: "bloom",
