@@ -3,17 +3,17 @@
   --ev-c-white-soft: #f8f8f8;
   --ev-c-white-mute: #f2f2f2;
 
-  --ev-c-black: #1b1b1f;
-  --ev-c-black-soft: #222222;
-  --ev-c-black-mute: #282828;
+  --ev-c-black: #eef7ee;
+  --ev-c-black-soft: #e2f1e2;
+  --ev-c-black-mute: #d6ebd6;
 
-  --ev-c-gray-1: #515c67;
-  --ev-c-gray-2: #414853;
-  --ev-c-gray-3: #32363f;
+  --ev-c-gray-1: #6b8f6b;
+  --ev-c-gray-2: #7fa87f;
+  --ev-c-gray-3: #a8cca8;
 
-  --ev-c-text-1: rgba(255, 255, 245, 0.86);
-  --ev-c-text-2: rgba(235, 235, 245, 0.6);
-  --ev-c-text-3: rgba(235, 235, 245, 0.38);
+  --ev-c-text-1: rgba(30, 60, 30, 0.88);
+  --ev-c-text-2: rgba(30, 60, 30, 0.55);
+  --ev-c-text-3: rgba(30, 60, 30, 0.35);
 
   --ev-button-alt-border: transparent;
   --ev-button-alt-text: var(--ev-c-text-1);
