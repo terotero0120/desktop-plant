@@ -16,7 +16,7 @@ function calcDayNumber(startedAt: number): number {
     n.getMonth(),
     n.getDate(),
   ).getTime();
-  return Math.floor((nMidnight - sMidnight) / 86400000) + 1;
+  return Math.max(1, Math.floor((nMidnight - sMidnight) / 86400000) + 1);
 }
 
 function formatDateTime(ts: number): string {
