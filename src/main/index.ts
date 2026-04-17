@@ -173,14 +173,16 @@ function createTray(onNextSeed: () => void): void {
   tray.setToolTip("Desktop Plant");
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: "次のタネを植える", click: onNextSeed },
+    { type: "separator" },
     {
       label: "ステータスを見る",
       click: (): void => {
         createStatusWindow();
       },
     },
-    { label: "次のタネを植える", click: onNextSeed },
-    { label: "図鑑", click: createCollectionWindow },
+    { label: "図鑑を見る", click: createCollectionWindow },
+    { type: "separator" },
     {
       label: "プライバシーについて",
       click: (): void => {
@@ -296,14 +298,16 @@ app.whenReady().then(async () => {
   ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     const menu = Menu.buildFromTemplate([
+      { label: "次のタネを植える", click: doNextSeed },
+      { type: "separator" },
       {
         label: "ステータスを見る",
         click: (): void => {
           createStatusWindow();
         },
       },
-      { label: "次のタネを植える", click: doNextSeed },
-      { label: "図鑑", click: createCollectionWindow },
+      { label: "図鑑を見る", click: createCollectionWindow },
+      { type: "separator" },
       {
         label: "プライバシーについて",
         click: (): void => {
