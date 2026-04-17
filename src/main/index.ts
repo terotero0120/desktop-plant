@@ -8,6 +8,7 @@ import {
   nativeImage,
   screen,
   ipcMain,
+  systemPreferences,
 } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
@@ -45,6 +46,42 @@ function applyOverlaySettings(win: BrowserWindow): void {
   // setVisibleOnAllWorkspaces is macOS-only (Electron limitation)
   if (process.platform === "darwin") {
     win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  }
+}
+
+async function initInputEngineWithPermissionCheck(
+  getWindow: () => BrowserWindow | null,
+): Promise<void> {
+  if (process.platform !== "darwin") {
+    initInputEngine(getWindow);
+    return;
+  }
+
+  if (systemPreferences.isTrustedAccessibilityClient(false)) {
+    initInputEngine(getWindow);
+    return;
+  }
+
+  const { response } = await dialog.showMessageBox({
+    type: "warning",
+    title: "アクセシビリティの権限が必要です",
+    message:
+      "キーボード・マウスの操作を検知するにはアクセシビリティの権限が必要です。",
+    detail: [
+      "【設定手順】",
+      "1.「システム設定を開く」をクリック",
+      "2.「アクセシビリティ」の一覧から Desktop Plant を許可",
+      "3. アプリを再起動",
+      "",
+      "権限を付与しなくてもアプリは起動しますが、植物の成長機能は動作しません。",
+    ].join("\n"),
+    buttons: ["システム設定を開く", "後で設定する"],
+    defaultId: 0,
+  });
+  if (response === 0) {
+    shell.openExternal(
+      "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+    );
   }
 }
 
@@ -232,7 +269,7 @@ app.whenReady().then(async () => {
 
   createWindow();
   createTray(doNextSeed);
-  initInputEngine(() => mainWindow);
+  await initInputEngineWithPermissionCheck(() => mainWindow);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
