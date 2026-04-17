@@ -25,7 +25,6 @@ import {
   BUD_THRESHOLD,
   GROWTH_THRESHOLD,
 } from "./store";
-import { PLANT_NAMES } from "../shared/plantNames";
 import { initInputEngine, stopInputEngine } from "./inputEngine";
 
 const WINDOW_WIDTH = 200;
@@ -42,6 +41,7 @@ const COMMON_WEB_PREFERENCES = {
 
 let mainWindow: BrowserWindow | null = null;
 let collectionWindow: BrowserWindow | null = null;
+let statusWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
 function applyOverlaySettings(win: BrowserWindow): void {
@@ -92,62 +92,29 @@ async function initInputEngineWithPermissionCheck(
   }
 }
 
-function buildStatusLines(now = Date.now()): string {
-  const state = getState();
-
-  const stageLabel: Record<string, string> = {
-    seedling: "苗",
-    bud: "蕾",
-    bloom: `開花中（${state.bloomedPlantId ? PLANT_NAMES[state.bloomedPlantId] : ""}）`,
-  };
-  const lines: string[] = [
-    `🌱 状態: ${stageLabel[state.growthStage] ?? state.growthStage}`,
-  ];
-
-  if (state.growthStage === "seedling") {
-    const remaining = Math.max(0, BUD_THRESHOLD - state.totalPoints);
-    lines.push(`📈 あと ${remaining}pt で蕾`);
-  } else if (state.growthStage === "bud") {
-    const remaining = Math.max(0, GROWTH_THRESHOLD - state.totalPoints);
-    lines.push(`📈 あと ${remaining}pt で開花`);
+function createStatusWindow(): void {
+  if (statusWindow && !statusWindow.isDestroyed()) {
+    statusWindow.focus();
+    return;
   }
-
-  if (state.startedAt !== null) {
-    const d = new Date(state.startedAt);
-    const pad = (n: number): string => String(n).padStart(2, "0");
-    const dateStr = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    lines.push(`📅 育て始め: ${dateStr}`);
-
-    const sDate = new Date(state.startedAt);
-    const nDate = new Date(now);
-    const sMidnight = new Date(
-      sDate.getFullYear(),
-      sDate.getMonth(),
-      sDate.getDate(),
-    ).getTime();
-    const nMidnight = new Date(
-      nDate.getFullYear(),
-      nDate.getMonth(),
-      nDate.getDate(),
-    ).getTime();
-    const day = Math.floor((nMidnight - sMidnight) / 86400000) + 1;
-    lines.push(`🗓 ${day}日目`);
+  statusWindow = new BrowserWindow({
+    width: 360,
+    height: 320,
+    title: "ステータス",
+    autoHideMenuBar: true,
+    resizable: false,
+    webPreferences: COMMON_WEB_PREFERENCES,
+  });
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    statusWindow.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}?view=status`);
   } else {
-    lines.push("📅 育て始め: 不明");
+    statusWindow.loadFile(join(__dirname, "../renderer/index.html"), {
+      query: { view: "status" },
+    });
   }
-
-  return lines.join("\n");
-}
-
-async function showStatusDialog(win?: BrowserWindow | null): Promise<void> {
-  const opts = {
-    type: "info" as const,
-    title: "植物のステータス",
-    message: "植物のステータス",
-    detail: buildStatusLines(),
-    buttons: ["OK"],
-  };
-  await (win ? dialog.showMessageBox(win, opts) : dialog.showMessageBox(opts));
+  statusWindow.on("closed", () => {
+    statusWindow = null;
+  });
 }
 
 async function showPrivacyDialog(): Promise<void> {
@@ -209,7 +176,7 @@ function createTray(onNextSeed: () => void): void {
     {
       label: "ステータスを見る",
       click: (): void => {
-        void showStatusDialog(mainWindow);
+        createStatusWindow();
       },
     },
     { label: "次のタネを植える", click: onNextSeed },
@@ -306,6 +273,11 @@ app.whenReady().then(async () => {
 
   ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState());
   ipcMain.handle(IPC_CHANNELS.GET_COLLECTION, () => getCollection());
+  ipcMain.handle(IPC_CHANNELS.GET_STATUS, () => ({
+    state: getState(),
+    budThreshold: BUD_THRESHOLD,
+    growthThreshold: GROWTH_THRESHOLD,
+  }));
 
   function doNextSeed(): void {
     resetPlant();
@@ -327,7 +299,7 @@ app.whenReady().then(async () => {
       {
         label: "ステータスを見る",
         click: (): void => {
-          void showStatusDialog(win);
+          createStatusWindow();
         },
       },
       { label: "次のタネを植える", click: doNextSeed },
