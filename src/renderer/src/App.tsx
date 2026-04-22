@@ -13,9 +13,10 @@ const initialState: PlantState = {
 };
 
 function calcBandIndex(totalPoints: number, growthThreshold: number): number {
+  if (totalPoints >= growthThreshold) return GROWTH_BANDS - 1;
   return Math.min(
-    Math.floor((totalPoints * GROWTH_BANDS) / growthThreshold),
-    GROWTH_BANDS - 1,
+    Math.floor((totalPoints * (GROWTH_BANDS - 1)) / growthThreshold),
+    GROWTH_BANDS - 2,
   );
 }
 

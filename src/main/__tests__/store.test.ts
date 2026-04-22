@@ -16,6 +16,7 @@ import {
   flushConsent,
   PLANT_IDS,
   GROWTH_THRESHOLD,
+  GROWTH_BANDS,
 } from "../store";
 
 beforeEach(() => {
@@ -62,8 +63,8 @@ describe("incrementPoints", () => {
 });
 
 describe("incrementPoints + 成長遷移", () => {
-  it("GROWTH_THRESHOLD / 3 に達したとき bud に自動遷移する", () => {
-    incrementPoints(Math.ceil(GROWTH_THRESHOLD / 3));
+  it("GROWTH_THRESHOLD * 3/8 に達したとき bud に自動遷移する", () => {
+    incrementPoints(Math.ceil((GROWTH_THRESHOLD * 3) / (GROWTH_BANDS - 1)));
     expect(getState().growthStage).toBe("bud");
   });
 
@@ -124,22 +125,26 @@ describe("flushState", () => {
 });
 
 describe("checkGrowth", () => {
-  it("seedling が GROWTH_THRESHOLD / 3 未満のとき何もしない", () => {
-    updateState({ totalPoints: Math.ceil(GROWTH_THRESHOLD / 3) - 1 });
+  it("seedling が GROWTH_THRESHOLD * 3/8 未満のとき何もしない", () => {
+    updateState({
+      totalPoints: Math.ceil((GROWTH_THRESHOLD * 3) / (GROWTH_BANDS - 1)) - 1,
+    });
     checkGrowth();
     expect(getState().growthStage).toBe("seedling");
   });
 
-  it("totalPoints が GROWTH_THRESHOLD / 3 に達したとき bud に遷移する", () => {
-    updateState({ totalPoints: Math.ceil(GROWTH_THRESHOLD / 3) });
+  it("totalPoints が GROWTH_THRESHOLD * 3/8 に達したとき bud に遷移する", () => {
+    updateState({
+      totalPoints: Math.ceil((GROWTH_THRESHOLD * 3) / (GROWTH_BANDS - 1)),
+    });
     checkGrowth();
     expect(getState().growthStage).toBe("bud");
   });
 
-  it("totalPoints が GROWTH_THRESHOLD * 2/3 に達したとき bloom に遷移する", () => {
+  it("totalPoints が GROWTH_THRESHOLD * 6/8 に達したとき bloom に遷移する", () => {
     resetPlant(Date.now(), () => "rose");
     updateState({
-      totalPoints: Math.ceil((GROWTH_THRESHOLD * 6) / 9),
+      totalPoints: Math.ceil((GROWTH_THRESHOLD * 6) / (GROWTH_BANDS - 1)),
       growthStage: "bud",
     });
     checkGrowth();
@@ -147,10 +152,10 @@ describe("checkGrowth", () => {
     expect(getState().bloomedPlantId).toBeNull();
   });
 
-  it("band 7（GROWTH_THRESHOLD * 8/9 未満）ではまだ bloomedPlantId は null", () => {
+  it("band 7（GROWTH_THRESHOLD 未満）ではまだ bloomedPlantId は null", () => {
     resetPlant(Date.now(), () => "rose");
     updateState({
-      totalPoints: Math.floor((GROWTH_THRESHOLD * 8) / 9),
+      totalPoints: GROWTH_THRESHOLD - 1,
       growthStage: "bloom",
     });
     checkGrowth();

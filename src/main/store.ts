@@ -26,10 +26,15 @@ function pickRandomDefault(ids: readonly PlantId[]): PlantId {
 }
 
 export function checkGrowth(): void {
-  const bandIndex = Math.min(
-    Math.floor((_state.totalPoints * GROWTH_BANDS) / GROWTH_THRESHOLD),
-    GROWTH_BANDS - 1,
-  );
+  const bandIndex =
+    _state.totalPoints >= GROWTH_THRESHOLD
+      ? GROWTH_BANDS - 1
+      : Math.min(
+          Math.floor(
+            (_state.totalPoints * (GROWTH_BANDS - 1)) / GROWTH_THRESHOLD,
+          ),
+          GROWTH_BANDS - 2,
+        );
   const newStage: GrowthStage =
     bandIndex < 3 ? "seedling" : bandIndex < 6 ? "bud" : "bloom";
   _state.growthStage = newStage;

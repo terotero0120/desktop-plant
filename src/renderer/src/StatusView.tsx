@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { StatusInfo } from "../../shared/ipc";
-import { IPC_CHANNELS } from "../../shared/ipc";
+import { IPC_CHANNELS, GROWTH_BANDS } from "../../shared/ipc";
 import { PLANT_REGISTRY } from "./plantRegistry";
 
 function calcDayNumber(startedAt: number): number {
@@ -54,9 +54,17 @@ export default function StatusView(): React.JSX.Element {
 
   const remaining =
     state.growthStage === "seedling"
-      ? Math.max(0, Math.ceil(growthThreshold / 3) - state.totalPoints)
+      ? Math.max(
+          0,
+          Math.ceil((growthThreshold * 3) / (GROWTH_BANDS - 1)) -
+            state.totalPoints,
+        )
       : state.growthStage === "bud"
-        ? Math.max(0, Math.ceil((growthThreshold * 2) / 3) - state.totalPoints)
+        ? Math.max(
+            0,
+            Math.ceil((growthThreshold * 6) / (GROWTH_BANDS - 1)) -
+              state.totalPoints,
+          )
         : null;
 
   const nextLabel =
