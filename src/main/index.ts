@@ -43,22 +43,18 @@ let collectionWindow: BrowserWindow | null = null;
 let statusWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
-function broadcastState(): void {
-  const state = getState();
+function broadcastToAll(channel: string, data: unknown): void {
   BrowserWindow.getAllWindows().forEach((win) => {
-    if (!win.isDestroyed()) {
-      win.webContents.send(IPC_CHANNELS.STATE_UPDATE, state);
-    }
+    if (!win.isDestroyed()) win.webContents.send(channel, data);
   });
 }
 
+function broadcastState(): void {
+  broadcastToAll(IPC_CHANNELS.STATE_UPDATE, getState());
+}
+
 function broadcastCollection(): void {
-  const collection = getCollection();
-  BrowserWindow.getAllWindows().forEach((win) => {
-    if (!win.isDestroyed()) {
-      win.webContents.send(IPC_CHANNELS.COLLECTION_UPDATE, collection);
-    }
-  });
+  broadcastToAll(IPC_CHANNELS.COLLECTION_UPDATE, getCollection());
 }
 
 function applyOverlaySettings(win: BrowserWindow): void {

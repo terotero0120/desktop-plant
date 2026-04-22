@@ -27,7 +27,6 @@ type CollectionBroadcaster = () => void;
 let _broadcastState: StateBroadcaster = () => {};
 let _broadcastCollection: CollectionBroadcaster = () => {};
 let _lastBroadcastHadBloom = false;
-// 多重 initInputEngine 防止フラグ — stopInputEngine でリセットされる
 let _initialized = false;
 
 function resetIdle(): void {
