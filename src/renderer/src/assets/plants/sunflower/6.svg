@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="94" y="138" width="12" height="122" rx="6" fill="#5a9a3a"/>
+  <!-- Left leaf -->
+  <path d="M94 175 Q56 158 50 136 Q73 145 94 162 Z" fill="#4d8f2e"/>
+  <!-- Right leaf -->
+  <path d="M106 205 Q144 187 150 165 Q127 175 106 191 Z" fill="#4d8f2e"/>
+  <!-- 6 petals starting to open -->
+  <g transform="translate(100, 112)">
+    <ellipse cx="0" cy="-36" rx="8" ry="18" fill="#ffd600" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-36" rx="8" ry="18" fill="#ffc200" transform="rotate(60)"/>
+    <ellipse cx="0" cy="-36" rx="8" ry="18" fill="#ffd600" transform="rotate(120)"/>
+    <ellipse cx="0" cy="-36" rx="8" ry="18" fill="#ffc200" transform="rotate(180)"/>
+    <ellipse cx="0" cy="-36" rx="8" ry="18" fill="#ffd600" transform="rotate(240)"/>
+    <ellipse cx="0" cy="-36" rx="8" ry="18" fill="#ffc200" transform="rotate(300)"/>
+    <circle cx="0" cy="0" r="20" fill="#3b1a05"/>
+    <circle cx="-6" cy="-6" r="16" fill="#ffffff" opacity="0.05"/>
+  </g>
+</svg>

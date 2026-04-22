@@ -1,37 +1,41 @@
 import { useState, useEffect } from "react";
-import type { GrowthStage, PlantState } from "../../shared/ipc";
-import { IPC_CHANNELS } from "../../shared/ipc";
+import type { PlantState, StatusInfo } from "../../shared/ipc";
+import { IPC_CHANNELS, GROWTH_BANDS } from "../../shared/ipc";
 import potSvg from "./assets/plants/pot.svg";
-import seedlingSvg from "./assets/plants/seedling.svg";
-import budSvg from "./assets/plants/bud.svg";
-import { PLANT_REGISTRY } from "./plantRegistry";
+import { PLANT_REGISTRY, SHARED_PLANT_SVGS } from "./plantRegistry";
 
-const stageImages: Record<GrowthStage, string> = {
-  seedling: seedlingSvg,
-  bud: budSvg,
-  bloom: seedlingSvg, // unreachable: bloom always has a bloomedPlantId
+const initialState: PlantState = {
+  totalPoints: 0,
+  growthStage: "seedling",
+  plantId: "rose",
+  bloomedPlantId: null,
+  startedAt: null,
 };
 
-function getPlantImage(state: PlantState): string {
-  if (state.growthStage === "bloom" && state.bloomedPlantId) {
-    return PLANT_REGISTRY[state.bloomedPlantId].svg;
-  }
-  return stageImages[state.growthStage];
+function calcBandIndex(totalPoints: number, growthThreshold: number): number {
+  if (totalPoints >= growthThreshold) return GROWTH_BANDS - 1;
+  return Math.min(
+    Math.floor((totalPoints * (GROWTH_BANDS - 1)) / growthThreshold),
+    GROWTH_BANDS - 2,
+  );
+}
+
+function getPlantImage(state: PlantState, growthThreshold: number): string {
+  const band = calcBandIndex(state.totalPoints, growthThreshold);
+  if (band === 0) return SHARED_PLANT_SVGS.seedling;
+  return PLANT_REGISTRY[state.plantId].svgs[band - 1];
 }
 
 function App(): React.JSX.Element {
-  const [state, setState] = useState<PlantState>({
-    totalPoints: 0,
-    growthStage: "seedling",
-    bloomedPlantId: null,
-    startedAt: null,
-  });
+  const [state, setState] = useState<PlantState>(initialState);
+  const [growthThreshold, setGrowthThreshold] = useState(15_000);
 
   useEffect(() => {
     window.electron.ipcRenderer
-      .invoke(IPC_CHANNELS.GET_STATE)
-      .then((s: PlantState) => {
-        setState(s);
+      .invoke(IPC_CHANNELS.GET_STATUS)
+      .then((info: StatusInfo) => {
+        setState(info.state);
+        setGrowthThreshold(info.growthThreshold);
       });
 
     const removeStateListener = window.electron.ipcRenderer.on(
@@ -64,7 +68,7 @@ function App(): React.JSX.Element {
   return (
     <div style={{ position: "relative", width: "200px", height: "300px" }}>
       <img
-        src={getPlantImage(state)}
+        src={getPlantImage(state, growthThreshold)}
         alt="plant"
         style={layerStyle}
         draggable={false}
@@ -81,7 +85,8 @@ function App(): React.JSX.Element {
             pointerEvents: "none",
           }}
         >
-          {state.totalPoints}pt / {state.growthStage}
+          {state.totalPoints}pt / {state.growthStage} (band{" "}
+          {calcBandIndex(state.totalPoints, growthThreshold)})
         </div>
       )}
     </div>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="96" y="210" width="8" height="50" rx="4" fill="#5a9a3a"/>
+  <!-- Broad left leaf -->
+  <path d="M96 230 Q72 222 68 208 Q82 213 96 224 Z" fill="#4d8f2e"/>
+  <!-- Right leaf -->
+  <path d="M104 244 Q128 236 132 222 Q118 227 104 238 Z" fill="#4d8f2e"/>
+  <!-- Tiny green bud head -->
+  <circle cx="100" cy="207" r="6" fill="#7ab050"/>
+  <path d="M94 210 Q92 203 100 198 Q100 204 97 209 Z" fill="#5a9a3a"/>
+  <path d="M106 210 Q108 203 100 198 Q100 204 103 209 Z" fill="#4d8f2e"/>
+</svg>

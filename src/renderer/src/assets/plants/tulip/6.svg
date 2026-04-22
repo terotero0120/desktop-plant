@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="94" y="148" width="12" height="112" rx="6" fill="#5a9a3a"/>
+  <!-- Left leaf -->
+  <path d="M97 196 Q68 183 63 156 Q82 167 97 184 Z" fill="#4d8f2e"/>
+  <!-- Right leaf -->
+  <path d="M103 226 Q133 210 138 182 Q118 196 103 213 Z" fill="#4d8f2e"/>
+  <!-- Tulip slightly opening at top -->
+  <!-- Back center petal -->
+  <path d="M88 148 Q83 118 100 92 Q117 118 112 148 Z" fill="#d42070"/>
+  <!-- Left petal slightly opening -->
+  <path d="M88 148 Q66 126 72 100 Q86 88 100 98 Q94 122 91 148 Z" fill="#e8308a"/>
+  <!-- Right petal slightly opening -->
+  <path d="M112 148 Q134 126 128 100 Q114 88 100 98 Q106 122 109 148 Z" fill="#e8308a"/>
+  <path d="M95 146 Q90 116 100 92 Q110 116 105 146 Q100 140 95 146 Z" fill="#b81860" opacity="0.4"/>
+  <ellipse cx="100" cy="147" rx="13" ry="5" fill="#b01858"/>
+</svg>

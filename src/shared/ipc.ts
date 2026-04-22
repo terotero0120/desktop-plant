@@ -2,10 +2,12 @@ export type GrowthStage = "seedling" | "bud" | "bloom";
 
 export const PLANT_IDS = ["rose", "sunflower", "tulip"] as const;
 export type PlantId = (typeof PLANT_IDS)[number];
+export const GROWTH_BANDS = 9;
 
 export interface PlantState {
   totalPoints: number;
   growthStage: GrowthStage;
+  plantId: PlantId;
   bloomedPlantId: PlantId | null;
   startedAt: number | null;
 }
@@ -18,7 +20,6 @@ export interface CollectionEntry {
 
 export interface StatusInfo {
   state: PlantState;
-  budThreshold: number;
   growthThreshold: number;
 }
 

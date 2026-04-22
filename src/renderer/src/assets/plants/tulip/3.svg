@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="96" y="210" width="8" height="50" rx="4" fill="#5a9a3a"/>
+  <!-- Strap-like left leaf -->
+  <path d="M97 232 Q78 225 74 212 Q86 216 97 225 Z" fill="#4d8f2e"/>
+  <!-- Tiny oval bud tip (pink-tipped) -->
+  <path d="M93 210 Q90 203 100 197 Q110 203 107 210 Q104 215 100 216 Q96 215 93 210 Z" fill="#c85080"/>
+  <path d="M93 210 Q90 203 100 197 Q100 203 100 210 Z" fill="#a84060" opacity="0.5"/>
+</svg>

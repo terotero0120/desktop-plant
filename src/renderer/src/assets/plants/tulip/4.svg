@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="95" y="180" width="10" height="80" rx="5" fill="#5a9a3a"/>
+  <!-- Left strap leaf -->
+  <path d="M97 212 Q72 202 68 183 Q84 189 97 204 Z" fill="#4d8f2e"/>
+  <!-- Small closed tulip bud -->
+  <path d="M88 180 Q84 158 100 140 Q116 158 112 180 Q108 188 100 190 Q92 188 88 180 Z" fill="#d42070"/>
+  <path d="M88 180 Q84 158 100 140 Q100 158 100 180 Z" fill="#b81860" opacity="0.4"/>
+  <ellipse cx="100" cy="184" rx="12" ry="5" fill="#b01858"/>
+</svg>

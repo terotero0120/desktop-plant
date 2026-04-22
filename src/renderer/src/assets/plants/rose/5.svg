@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="94" y="155" width="12" height="105" rx="6" fill="#5a9a3a"/>
+  <!-- Thorn -->
+  <path d="M94 217 L79 209 L94 213 Z" fill="#4d8f2e"/>
+  <!-- Left leaf -->
+  <path d="M94 185 Q58 169 52 149 Q74 157 94 173 Z" fill="#4d8f2e"/>
+  <line x1="94" y1="185" x2="58" y2="162" stroke="#3d7a1e" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Right leaf -->
+  <path d="M106 212 Q144 196 150 176 Q128 184 106 200 Z" fill="#4d8f2e"/>
+  <line x1="106" y1="212" x2="143" y2="183" stroke="#3d7a1e" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Medium rose bud -->
+  <ellipse cx="100" cy="137" rx="11" ry="21" fill="#e03545"/>
+  <ellipse cx="100" cy="127" rx="7" ry="13" fill="#e85560" opacity="0.8"/>
+  <!-- Sepal -->
+  <ellipse cx="100" cy="148" rx="13" ry="14" fill="#5a9a3a"/>
+  <path d="M87 152 Q82 136 92 127 Q92 140 93 151 Z" fill="#4d8f2e"/>
+  <path d="M113 152 Q118 136 108 127 Q108 140 107 151 Z" fill="#4d8f2e"/>
+  <path d="M100 126 Q94 138 97 149 Q100 143 103 149 Q106 138 100 126 Z" fill="#3d7a1e"/>
+</svg>
