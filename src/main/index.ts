@@ -43,6 +43,24 @@ let collectionWindow: BrowserWindow | null = null;
 let statusWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
+function broadcastState(): void {
+  const state = getState();
+  BrowserWindow.getAllWindows().forEach((win) => {
+    if (!win.isDestroyed()) {
+      win.webContents.send(IPC_CHANNELS.STATE_UPDATE, state);
+    }
+  });
+}
+
+function broadcastCollection(): void {
+  const collection = getCollection();
+  BrowserWindow.getAllWindows().forEach((win) => {
+    if (!win.isDestroyed()) {
+      win.webContents.send(IPC_CHANNELS.COLLECTION_UPDATE, collection);
+    }
+  });
+}
+
 function applyOverlaySettings(win: BrowserWindow): void {
   win.setAlwaysOnTop(true, "floating");
   // setVisibleOnAllWorkspaces is macOS-only (Electron limitation)
@@ -51,16 +69,14 @@ function applyOverlaySettings(win: BrowserWindow): void {
   }
 }
 
-async function initInputEngineWithPermissionCheck(
-  getWindow: () => BrowserWindow | null,
-): Promise<void> {
+async function initInputEngineWithPermissionCheck(): Promise<void> {
   if (process.platform !== "darwin") {
-    initInputEngine(getWindow);
+    initInputEngine(broadcastState, broadcastCollection);
     return;
   }
 
   if (systemPreferences.isTrustedAccessibilityClient(false)) {
-    initInputEngine(getWindow);
+    initInputEngine(broadcastState, broadcastCollection);
     return;
   }
 
@@ -80,9 +96,8 @@ async function initInputEngineWithPermissionCheck(
     buttons: ["システム設定を開く", "後で設定する"],
     defaultId: 0,
   };
-  const win = getWindow();
-  const { response } = await (win
-    ? dialog.showMessageBox(win, opts)
+  const { response } = await (mainWindow
+    ? dialog.showMessageBox(mainWindow, opts)
     : dialog.showMessageBox(opts));
   if (response === 0) {
     shell.openExternal(
@@ -282,10 +297,7 @@ app.whenReady().then(async () => {
   function doNextSeed(): void {
     resetPlant();
     flushState();
-    const state = getState();
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send(IPC_CHANNELS.STATE_UPDATE, state);
-    }
+    broadcastState();
   }
 
   ipcMain.handle(IPC_CHANNELS.PLANT_NEXT_SEED, () => {
@@ -320,7 +332,7 @@ app.whenReady().then(async () => {
 
   createWindow();
   createTray(doNextSeed);
-  await initInputEngineWithPermissionCheck(() => mainWindow);
+  await initInputEngineWithPermissionCheck();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

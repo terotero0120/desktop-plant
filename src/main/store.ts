@@ -6,14 +6,26 @@ import type {
   PlantId,
   PlantState,
 } from "../shared/ipc";
-import { PLANT_IDS, GROWTH_BANDS } from "../shared/ipc";
+import {
+  PLANT_IDS,
+  GROWTH_BANDS,
+  calcBandIndex,
+  STAGE_BUD_BAND,
+  STAGE_BLOOM_BAND,
+} from "../shared/ipc";
 export type {
   CollectionEntry,
   GrowthStage,
   PlantId,
   PlantState,
 } from "../shared/ipc";
-export { PLANT_IDS, IPC_CHANNELS, GROWTH_BANDS } from "../shared/ipc";
+export {
+  PLANT_IDS,
+  IPC_CHANNELS,
+  GROWTH_BANDS,
+  STAGE_BUD_BAND,
+  STAGE_BLOOM_BAND,
+} from "../shared/ipc";
 
 const isDev = process.env.NODE_ENV === "development";
 export const GROWTH_THRESHOLD = isDev ? 1_000 : 15_000;
@@ -26,17 +38,13 @@ function pickRandomDefault(ids: readonly PlantId[]): PlantId {
 }
 
 export function checkGrowth(): void {
-  const bandIndex =
-    _state.totalPoints >= GROWTH_THRESHOLD
-      ? GROWTH_BANDS - 1
-      : Math.min(
-          Math.floor(
-            (_state.totalPoints * (GROWTH_BANDS - 1)) / GROWTH_THRESHOLD,
-          ),
-          GROWTH_BANDS - 2,
-        );
+  const bandIndex = calcBandIndex(_state.totalPoints, GROWTH_THRESHOLD);
   const newStage: GrowthStage =
-    bandIndex < 3 ? "seedling" : bandIndex < 6 ? "bud" : "bloom";
+    bandIndex < STAGE_BUD_BAND
+      ? "seedling"
+      : bandIndex < STAGE_BLOOM_BAND
+        ? "bud"
+        : "bloom";
   _state.growthStage = newStage;
   if (bandIndex === GROWTH_BANDS - 1 && !_state.bloomedPlantId) {
     _state.bloomedPlantId = _state.plantId;

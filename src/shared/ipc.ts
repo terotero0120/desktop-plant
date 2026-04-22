@@ -3,6 +3,19 @@ export type GrowthStage = "seedling" | "bud" | "bloom";
 export const PLANT_IDS = ["rose", "sunflower", "tulip"] as const;
 export type PlantId = (typeof PLANT_IDS)[number];
 export const GROWTH_BANDS = 9;
+export const STAGE_BUD_BAND = 3;
+export const STAGE_BLOOM_BAND = 6;
+
+export function calcBandIndex(
+  totalPoints: number,
+  growthThreshold: number,
+): number {
+  if (totalPoints >= growthThreshold) return GROWTH_BANDS - 1;
+  return Math.min(
+    Math.floor((totalPoints * (GROWTH_BANDS - 1)) / growthThreshold),
+    GROWTH_BANDS - 2,
+  );
+}
 
 export interface PlantState {
   totalPoints: number;
@@ -30,4 +43,5 @@ export const IPC_CHANNELS = {
   SHOW_CONTEXT_MENU: "plant:show-context-menu",
   GET_COLLECTION: "plant:get-collection",
   GET_STATUS: "plant:get-status",
+  COLLECTION_UPDATE: "plant:collection-update",
 } as const;

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { CollectionEntry } from "../../shared/ipc";
-import { IPC_CHANNELS, PLANT_IDS } from "../../shared/ipc";
+import { PLANT_IDS } from "../../shared/ipc";
 import { PLANT_REGISTRY, SHARED_PLANT_SVGS } from "./plantRegistry";
+import { ipcGetCollection, onCollectionUpdate } from "./ipcClient";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("ja-JP", {
@@ -15,13 +16,20 @@ export default function CollectionView(): React.JSX.Element {
   const [collection, setCollection] = useState<CollectionEntry[]>([]);
 
   useEffect(() => {
-    window.electron.ipcRenderer
-      .invoke(IPC_CHANNELS.GET_COLLECTION)
+    ipcGetCollection()
       .then((entries: CollectionEntry[]) => setCollection(entries))
       .catch((error) => {
         console.error("Failed to load collection:", error);
         setCollection([]);
       });
+
+    const removeListener = onCollectionUpdate((entries) => {
+      setCollection(entries);
+    });
+
+    return () => {
+      removeListener();
+    };
   }, []);
 
   const obtained = collection.length;

@@ -38,10 +38,6 @@ describe("inputEngine", () => {
       })),
       incrementPoints: mockIncrementPoints,
       flushState: mockFlushState,
-      IPC_CHANNELS: {
-        GET_STATE: "plant:get-state",
-        STATE_UPDATE: "plant:state-update",
-      },
     }));
 
     vi.useFakeTimers();
@@ -50,7 +46,10 @@ describe("inputEngine", () => {
     initInputEngine = module.initInputEngine;
     stopInputEngine = module.stopInputEngine;
 
-    initInputEngine(() => null);
+    initInputEngine(
+      () => {},
+      () => {},
+    );
   });
 
   afterEach(() => {

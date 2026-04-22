@@ -1,6 +1,5 @@
 import { uIOhook } from "uiohook-napi";
-import type { BrowserWindow } from "electron";
-import { getState, incrementPoints, flushState, IPC_CHANNELS } from "./store";
+import { getState, incrementPoints, flushState } from "./store";
 
 // spec section 1: 換算レート（暫定）
 const KEYSTROKE_PTS = 1; // 1打鍵 = 1pt
@@ -23,8 +22,11 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null;
 let saveTimer: ReturnType<typeof setInterval> | null = null;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 
-type WindowGetter = () => BrowserWindow | null;
-let _getWindow: WindowGetter = () => null;
+type StateBroadcaster = () => void;
+type CollectionBroadcaster = () => void;
+let _broadcastState: StateBroadcaster = () => {};
+let _broadcastCollection: CollectionBroadcaster = () => {};
+let _lastBroadcastHadBloom = false;
 
 function resetIdle(): void {
   const now = Date.now();
@@ -51,15 +53,21 @@ function schedulePush(): void {
   if (pushTimer) return;
   pushTimer = setTimeout(() => {
     pushTimer = null;
-    const win = _getWindow();
-    if (win && !win.isDestroyed()) {
-      win.webContents.send(IPC_CHANNELS.STATE_UPDATE, getState());
+    const state = getState();
+    _broadcastState();
+    if (state.bloomedPlantId !== null && !_lastBroadcastHadBloom) {
+      _broadcastCollection();
     }
+    _lastBroadcastHadBloom = state.bloomedPlantId !== null;
   }, STATE_PUSH_MS);
 }
 
-export function initInputEngine(getWindow: WindowGetter): void {
-  _getWindow = getWindow;
+export function initInputEngine(
+  broadcastState: StateBroadcaster,
+  broadcastCollection: CollectionBroadcaster,
+): void {
+  _broadcastState = broadcastState;
+  _broadcastCollection = broadcastCollection;
 
   uIOhook.on("keydown", () => {
     resetIdle();
@@ -117,5 +125,6 @@ export function stopInputEngine(): void {
     pushTimer = null;
   }
 
+  _lastBroadcastHadBloom = false;
   flushState();
 }
