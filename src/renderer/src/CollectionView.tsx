@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CollectionEntry } from "../../shared/ipc";
 import { IPC_CHANNELS, PLANT_IDS } from "../../shared/ipc";
-import budSvg from "./assets/plants/bud.svg";
-import { PLANT_REGISTRY } from "./plantRegistry";
+import { PLANT_REGISTRY, SHARED_PLANT_SVGS } from "./plantRegistry";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("ja-JP", {
@@ -43,7 +42,9 @@ export default function CollectionView(): React.JSX.Element {
           return (
             <li key={id} style={entry ? styles.item : lockedItemStyle}>
               <img
-                src={entry ? PLANT_REGISTRY[id].svg : budSvg}
+                src={
+                  entry ? PLANT_REGISTRY[id].svg : SHARED_PLANT_SVGS.seedling
+                }
                 alt={entry ? PLANT_REGISTRY[id].name : "？？？"}
                 style={entry ? styles.plantImg : styles.plantImgLocked}
                 draggable={false}

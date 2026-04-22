@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="94" y="155" width="12" height="105" rx="6" fill="#5a9a3a"/>
+  <!-- Left strap leaf -->
+  <path d="M97 200 Q68 188 63 163 Q82 173 97 190 Z" fill="#4d8f2e"/>
+  <!-- Right leaf -->
+  <path d="M103 228 Q132 213 138 186 Q118 200 103 218 Z" fill="#4d8f2e"/>
+  <!-- Medium tulip bud (taller) -->
+  <path d="M87 155 Q81 128 100 106 Q119 128 113 155 Q108 166 100 168 Q92 166 87 155 Z" fill="#d42070"/>
+  <path d="M87 155 Q81 128 100 106 Q100 128 100 155 Z" fill="#b81860" opacity="0.4"/>
+  <ellipse cx="100" cy="160" rx="13" ry="6" fill="#b01858"/>
+</svg>

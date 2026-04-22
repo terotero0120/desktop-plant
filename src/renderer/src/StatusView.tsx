@@ -41,7 +41,7 @@ export default function StatusView(): React.JSX.Element {
     return <div style={styles.container} />;
   }
 
-  const { state, budThreshold, growthThreshold } = info;
+  const { state, growthThreshold } = info;
 
   const stageLabel =
     state.growthStage === "seedling"
@@ -54,9 +54,9 @@ export default function StatusView(): React.JSX.Element {
 
   const remaining =
     state.growthStage === "seedling"
-      ? Math.max(0, budThreshold - state.totalPoints)
+      ? Math.max(0, Math.ceil(growthThreshold / 3) - state.totalPoints)
       : state.growthStage === "bud"
-        ? Math.max(0, growthThreshold - state.totalPoints)
+        ? Math.max(0, Math.ceil((growthThreshold * 2) / 3) - state.totalPoints)
         : null;
 
   const nextLabel =

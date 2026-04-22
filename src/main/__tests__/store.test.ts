@@ -15,7 +15,6 @@ import {
   resetConsent,
   flushConsent,
   PLANT_IDS,
-  BUD_THRESHOLD,
   GROWTH_THRESHOLD,
 } from "../store";
 
@@ -31,6 +30,7 @@ describe("getState", () => {
     expect(state.totalPoints).toBe(0);
     expect(state.growthStage).toBe("seedling");
     expect(state.bloomedPlantId).toBeNull();
+    expect(PLANT_IDS).toContain(state.plantId);
   });
 
   it("コピーを返す（参照渡しでない）", () => {
@@ -62,19 +62,21 @@ describe("incrementPoints", () => {
 });
 
 describe("incrementPoints + 成長遷移", () => {
-  it("BUD_THRESHOLD に達したとき bud に自動遷移する", () => {
-    incrementPoints(BUD_THRESHOLD);
+  it("GROWTH_THRESHOLD / 3 に達したとき bud に自動遷移する", () => {
+    incrementPoints(Math.ceil(GROWTH_THRESHOLD / 3));
     expect(getState().growthStage).toBe("bud");
   });
 
   it("GROWTH_THRESHOLD に達したとき bloom に自動遷移する", () => {
+    resetPlant(Date.now(), () => "rose");
     updateState({ growthStage: "bud", totalPoints: GROWTH_THRESHOLD - 1 });
     incrementPoints(1);
     expect(getState().growthStage).toBe("bloom");
-    expect(getState().bloomedPlantId).not.toBeNull();
+    expect(getState().bloomedPlantId).toBe("rose");
   });
 
   it("bloom 中は totalPoints が加算されない", () => {
+    resetPlant(Date.now(), () => "rose");
     updateState({
       growthStage: "bloom",
       totalPoints: GROWTH_THRESHOLD,
@@ -85,6 +87,7 @@ describe("incrementPoints + 成長遷移", () => {
   });
 
   it("bloom 中の加算は bloomedPlantId を変えない", () => {
+    resetPlant(Date.now(), () => "rose");
     updateState({
       growthStage: "bloom",
       totalPoints: GROWTH_THRESHOLD,
@@ -121,43 +124,59 @@ describe("flushState", () => {
 });
 
 describe("checkGrowth", () => {
-  it("seedling が BUD_THRESHOLD 未満のとき何もしない", () => {
-    updateState({ totalPoints: BUD_THRESHOLD - 1 });
+  it("seedling が GROWTH_THRESHOLD / 3 未満のとき何もしない", () => {
+    updateState({ totalPoints: Math.ceil(GROWTH_THRESHOLD / 3) - 1 });
     checkGrowth();
     expect(getState().growthStage).toBe("seedling");
   });
 
-  it("seedling が BUD_THRESHOLD に達したとき bud に遷移する", () => {
-    updateState({ totalPoints: BUD_THRESHOLD });
+  it("totalPoints が GROWTH_THRESHOLD / 3 に達したとき bud に遷移する", () => {
+    updateState({ totalPoints: Math.ceil(GROWTH_THRESHOLD / 3) });
     checkGrowth();
     expect(getState().growthStage).toBe("bud");
   });
 
-  it("bud が GROWTH_THRESHOLD に達したとき bloom に遷移し bloomedPlantId が設定される", () => {
+  it("totalPoints が GROWTH_THRESHOLD * 2/3 に達したとき bloom に遷移する", () => {
+    resetPlant(Date.now(), () => "rose");
+    updateState({
+      totalPoints: Math.ceil((GROWTH_THRESHOLD * 6) / 9),
+      growthStage: "bud",
+    });
+    checkGrowth();
+    expect(getState().growthStage).toBe("bloom");
+    expect(getState().bloomedPlantId).toBeNull();
+  });
+
+  it("band 7（GROWTH_THRESHOLD * 8/9 未満）ではまだ bloomedPlantId は null", () => {
+    resetPlant(Date.now(), () => "rose");
+    updateState({
+      totalPoints: Math.floor((GROWTH_THRESHOLD * 8) / 9),
+      growthStage: "bloom",
+    });
+    checkGrowth();
+    expect(getState().bloomedPlantId).toBeNull();
+  });
+
+  it("GROWTH_THRESHOLD 到達で bloomedPlantId = plantId になる", () => {
+    resetPlant(Date.now(), () => "rose");
     updateState({ totalPoints: GROWTH_THRESHOLD, growthStage: "bud" });
-    checkGrowth(() => "rose");
+    checkGrowth();
     const state = getState();
     expect(state.growthStage).toBe("bloom");
     expect(state.bloomedPlantId).toBe("rose");
   });
 
   it("bloom 中は checkGrowth を呼んでも bloomedPlantId が変わらない", () => {
+    resetPlant(Date.now(), () => "tulip");
     updateState({
       totalPoints: GROWTH_THRESHOLD,
       growthStage: "bloom",
       bloomedPlantId: "tulip",
     });
     const pick = vi.fn(() => "rose" as const);
-    checkGrowth(pick);
+    checkGrowth();
     expect(pick).not.toHaveBeenCalled();
     expect(getState().bloomedPlantId).toBe("tulip");
-  });
-
-  it("seedling が GROWTH_THRESHOLD を超えたとき一発で bloom に遷移できる", () => {
-    updateState({ totalPoints: GROWTH_THRESHOLD });
-    checkGrowth(() => "sunflower");
-    expect(getState().growthStage).toBe("bloom");
-    expect(getState().bloomedPlantId).toBe("sunflower");
   });
 
   it("bloomedPlantId は PLANT_IDS の中の値である", () => {
@@ -184,6 +203,16 @@ describe("resetPlant", () => {
   it("clock 引数で startedAt が設定される", () => {
     resetPlant(12345);
     expect(getState().startedAt).toBe(12345);
+  });
+
+  it("plantId が PLANT_IDS 内の値である", () => {
+    resetPlant();
+    expect(PLANT_IDS).toContain(getState().plantId);
+  });
+
+  it("pickRandom 引数が plantId に反映される", () => {
+    resetPlant(Date.now(), () => "sunflower");
+    expect(getState().plantId).toBe("sunflower");
   });
 
   it("リセット後 incrementPoints が再び機能する", () => {
@@ -281,6 +310,7 @@ describe("flushConsent", () => {
 
 describe("incrementPoints + コレクション登録", () => {
   it("bloom 遷移時に getCollection にエントリが追加される", () => {
+    resetPlant(Date.now(), () => "rose");
     updateState({ growthStage: "bud", totalPoints: GROWTH_THRESHOLD - 1 });
     incrementPoints(1);
     expect(getState().growthStage).toBe("bloom");
@@ -291,6 +321,7 @@ describe("incrementPoints + コレクション登録", () => {
   });
 
   it("bloom 中の incrementPoints ではコレクションが変化しない", () => {
+    resetPlant(Date.now(), () => "rose");
     updateState({
       growthStage: "bloom",
       totalPoints: GROWTH_THRESHOLD,

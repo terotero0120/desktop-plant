@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="95" y="180" width="10" height="80" rx="5" fill="#5a9a3a"/>
+  <!-- Left leaf -->
+  <path d="M95 202 Q68 192 63 175 Q80 181 95 194 Z" fill="#4d8f2e"/>
+  <!-- Right leaf -->
+  <path d="M105 226 Q132 216 137 199 Q120 205 105 219 Z" fill="#4d8f2e"/>
+  <!-- Small bud disk + sepal -->
+  <circle cx="100" cy="174" r="10" fill="#3b1a05"/>
+  <ellipse cx="100" cy="183" rx="12" ry="8" fill="#5a9a3a"/>
+  <path d="M88 186 Q84 173 95 165 Q95 176 91 185 Z" fill="#4d8f2e"/>
+  <path d="M112 186 Q116 173 105 165 Q105 176 109 185 Z" fill="#4d8f2e"/>
+</svg>

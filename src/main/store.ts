@@ -1,18 +1,22 @@
 // electron-store v8 は ESM-only のため dynamic import を使用する
 
-import type { CollectionEntry, PlantId, PlantState } from "../shared/ipc";
-import { PLANT_IDS } from "../shared/ipc";
+import type {
+  CollectionEntry,
+  GrowthStage,
+  PlantId,
+  PlantState,
+} from "../shared/ipc";
+import { PLANT_IDS, GROWTH_BANDS } from "../shared/ipc";
 export type {
   CollectionEntry,
   GrowthStage,
   PlantId,
   PlantState,
 } from "../shared/ipc";
-export { PLANT_IDS, IPC_CHANNELS } from "../shared/ipc";
+export { PLANT_IDS, IPC_CHANNELS, GROWTH_BANDS } from "../shared/ipc";
 
 const isDev = process.env.NODE_ENV === "development";
 export const GROWTH_THRESHOLD = isDev ? 1_000 : 15_000;
-export const BUD_THRESHOLD = GROWTH_THRESHOLD * 0.5;
 
 type PickRandom = (ids: readonly PlantId[]) => PlantId;
 
@@ -21,21 +25,28 @@ function pickRandomDefault(ids: readonly PlantId[]): PlantId {
   return ids[Math.floor(Math.random() * ids.length)];
 }
 
-export function checkGrowth(pickRandom: PickRandom = pickRandomDefault): void {
-  if (
-    _state.growthStage === "seedling" &&
-    _state.totalPoints >= BUD_THRESHOLD
-  ) {
-    _state.growthStage = "bud";
-  }
-  if (_state.growthStage === "bud" && _state.totalPoints >= GROWTH_THRESHOLD) {
-    _state.growthStage = "bloom";
-    _state.bloomedPlantId = pickRandom(PLANT_IDS);
+export function checkGrowth(): void {
+  const bandIndex = Math.min(
+    Math.floor((_state.totalPoints * GROWTH_BANDS) / GROWTH_THRESHOLD),
+    GROWTH_BANDS - 1,
+  );
+  const newStage: GrowthStage =
+    bandIndex < 3 ? "seedling" : bandIndex < 6 ? "bud" : "bloom";
+  _state.growthStage = newStage;
+  if (bandIndex === GROWTH_BANDS - 1 && !_state.bloomedPlantId) {
+    _state.bloomedPlantId = _state.plantId;
   }
 }
 
-export function resetPlant(now = Date.now()): void {
-  _state = { ...PLANT_DEFAULTS, startedAt: now };
+export function resetPlant(
+  now = Date.now(),
+  pickRandom: PickRandom = pickRandomDefault,
+): void {
+  _state = {
+    ...PLANT_DEFAULTS,
+    startedAt: now,
+    plantId: pickRandom(PLANT_IDS),
+  };
 }
 
 export function resetCollection(): void {
@@ -45,6 +56,7 @@ export function resetCollection(): void {
 const PLANT_DEFAULTS: PlantState = {
   totalPoints: 0,
   growthStage: "seedling",
+  plantId: "rose",
   bloomedPlantId: null,
   startedAt: null,
 };
@@ -75,7 +87,10 @@ export async function initStore(): Promise<void> {
   _collection = _store.get("collection") as CollectionEntry[];
   _privacyConsent = _store.get("privacyConsent") as boolean;
   if (_state.startedAt === null && _state.totalPoints === 0) {
-    _state.startedAt = Date.now();
+    resetPlant(Date.now());
+    flushState();
+  } else if (!_state.plantId) {
+    _state.plantId = pickRandomDefault(PLANT_IDS);
     flushState();
   }
   const stageBefore = _state.growthStage;
@@ -111,7 +126,7 @@ export function recordBloom(plantId: PlantId): void {
 }
 
 export function incrementPoints(delta: number): void {
-  if (_state.growthStage === "bloom") return;
+  if (_state.bloomedPlantId !== null) return;
   _state.totalPoints += delta;
   checkGrowth();
   if (_state.bloomedPlantId !== null) {

@@ -22,7 +22,6 @@ import {
   getConsent,
   setConsent,
   flushConsent,
-  BUD_THRESHOLD,
   GROWTH_THRESHOLD,
 } from "./store";
 import { initInputEngine, stopInputEngine } from "./inputEngine";
@@ -277,7 +276,6 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.GET_COLLECTION, () => getCollection());
   ipcMain.handle(IPC_CHANNELS.GET_STATUS, () => ({
     state: getState(),
-    budThreshold: BUD_THRESHOLD,
     growthThreshold: GROWTH_THRESHOLD,
   }));
 

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+  <!-- Stem -->
+  <rect x="95" y="178" width="10" height="82" rx="5" fill="#5a9a3a"/>
+  <!-- Thorn -->
+  <path d="M95 220 L83 213 L95 217 Z" fill="#4d8f2e"/>
+  <!-- Left leaf -->
+  <path d="M95 200 Q72 188 67 170 Q81 177 95 191 Z" fill="#4d8f2e"/>
+  <line x1="95" y1="200" x2="73" y2="181" stroke="#3d7a1e" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Right leaf -->
+  <path d="M105 224 Q128 212 132 194 Q118 201 105 215 Z" fill="#4d8f2e"/>
+  <line x1="105" y1="224" x2="127" y2="202" stroke="#3d7a1e" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Small rose bud -->
+  <ellipse cx="100" cy="168" rx="8" ry="13" fill="#d85060"/>
+  <ellipse cx="100" cy="175" rx="11" ry="9" fill="#5a9a3a"/>
+  <path d="M89 178 Q84 163 95 154 Q95 167 91 177 Z" fill="#4d8f2e"/>
+  <path d="M111 178 Q116 163 105 154 Q105 167 109 177 Z" fill="#4d8f2e"/>
+  <path d="M100 154 Q94 163 97 175 Q100 169 103 175 Q106 163 100 154 Z" fill="#3d7a1e"/>
+</svg>
