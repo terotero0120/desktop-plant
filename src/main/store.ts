@@ -12,6 +12,8 @@ import {
   calcBandIndex,
   STAGE_BUD_BAND,
   STAGE_BLOOM_BAND,
+  isPlantState,
+  isCollectionEntryArray,
 } from "../shared/ipc";
 export type {
   CollectionEntry,
@@ -96,8 +98,27 @@ let _privacyConsent: boolean = false;
 export async function initStore(): Promise<void> {
   const { default: Store } = await import("electron-store");
   _store = new Store<AppStore>({ defaults: APP_DEFAULTS });
-  _state = _store.get("plant") as PlantState;
-  _collection = _store.get("collection") as CollectionEntry[];
+  const rawPlant = _store.get("plant");
+  if (isPlantState(rawPlant)) {
+    _state = rawPlant;
+  } else {
+    console.warn("[store] invalid plant state in store, resetting:", rawPlant);
+    _state = { ...PLANT_DEFAULTS };
+    _store.set("plant", _state);
+  }
+
+  const rawCollection = _store.get("collection");
+  if (isCollectionEntryArray(rawCollection)) {
+    _collection = rawCollection;
+  } else {
+    console.warn(
+      "[store] invalid collection in store, resetting:",
+      rawCollection,
+    );
+    _collection = [];
+    _store.set("collection", _collection);
+  }
+
   _privacyConsent = _store.get("privacyConsent") as boolean;
   if (_state.startedAt === null && _state.totalPoints === 0) {
     resetPlant(Date.now());

@@ -164,5 +164,33 @@ describe("inputEngine", () => {
       stopInputEngine();
       expect(mockFlushState).toHaveBeenCalledTimes(1);
     });
+
+    it("stop → init しても二重カウントしない", () => {
+      stopInputEngine();
+      initInputEngine(
+        () => {},
+        () => {},
+      );
+
+      mockIncrementPoints.mockClear();
+      handlers["keydown"]();
+      expect(mockIncrementPoints).toHaveBeenCalledTimes(1);
+    });
+
+    it("stop で accumulatedMovePx がリセットされ再 init 後に持ち越しなし", () => {
+      handlers["mousemove"]({ x: 0, y: 0 });
+      handlers["mousemove"]({ x: 500, y: 0 }); // 500px 累積、未満で加算なし
+
+      stopInputEngine();
+      initInputEngine(
+        () => {},
+        () => {},
+      );
+
+      mockIncrementPoints.mockClear();
+      handlers["mousemove"]({ x: 0, y: 0 }); // 再初期化
+      handlers["mousemove"]({ x: 600, y: 0 }); // 600px — 累積が 0 からなので閾値未達
+      expect(mockIncrementPoints).not.toHaveBeenCalled();
+    });
   });
 });
