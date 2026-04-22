@@ -65,14 +65,18 @@ export default function StatusView(): React.JSX.Element {
             Math.ceil((growthThreshold * 6) / (GROWTH_BANDS - 1)) -
               state.totalPoints,
           )
-        : null;
+        : state.bloomedPlantId === null
+          ? Math.max(0, growthThreshold - state.totalPoints)
+          : null;
 
   const nextLabel =
     state.growthStage === "seedling"
       ? "蕾"
       : state.growthStage === "bud"
         ? "開花"
-        : null;
+        : state.bloomedPlantId === null
+          ? "満開"
+          : null;
 
   return (
     <div style={styles.container}>
