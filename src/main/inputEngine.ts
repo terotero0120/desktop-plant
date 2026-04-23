@@ -1,6 +1,5 @@
 import { uIOhook } from "uiohook-napi";
-import type { BrowserWindow } from "electron";
-import { getState, incrementPoints, flushState, IPC_CHANNELS } from "./store";
+import { getState, incrementPoints, flushState } from "./store";
 
 // spec section 1: 換算レート（暫定）
 const KEYSTROKE_PTS = 1; // 1打鍵 = 1pt
@@ -23,8 +22,11 @@ let idleTimer: ReturnType<typeof setTimeout> | null = null;
 let saveTimer: ReturnType<typeof setInterval> | null = null;
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
 
-type WindowGetter = () => BrowserWindow | null;
-let _getWindow: WindowGetter = () => null;
+type StateBroadcaster = () => void;
+type CollectionBroadcaster = () => void;
+let _broadcastState: StateBroadcaster = () => {};
+let _broadcastCollection: CollectionBroadcaster = () => {};
+let _initialized = false;
 
 function resetIdle(): void {
   const now = Date.now();
@@ -43,7 +45,11 @@ function addPoints(pts: number): void {
   // すべての呼び出し元（keydown/click/mousemove ハンドラ）は addPoints の前に resetIdle() を呼ぶため
   // isIdle=true がここに到達するのは将来の呼び出し元がその規約を破った場合のみ（安全網）
   if (isIdle) return;
+  const prevBloomed = getState().bloomedPlantId !== null;
   incrementPoints(pts);
+  if (!prevBloomed && getState().bloomedPlantId !== null) {
+    _broadcastCollection();
+  }
   schedulePush();
 }
 
@@ -51,15 +57,19 @@ function schedulePush(): void {
   if (pushTimer) return;
   pushTimer = setTimeout(() => {
     pushTimer = null;
-    const win = _getWindow();
-    if (win && !win.isDestroyed()) {
-      win.webContents.send(IPC_CHANNELS.STATE_UPDATE, getState());
-    }
+    _broadcastState();
   }, STATE_PUSH_MS);
 }
 
-export function initInputEngine(getWindow: WindowGetter): void {
-  _getWindow = getWindow;
+export function initInputEngine(
+  broadcastState: StateBroadcaster,
+  broadcastCollection: CollectionBroadcaster,
+): void {
+  if (_initialized) return;
+  _initialized = true;
+
+  _broadcastState = broadcastState;
+  _broadcastCollection = broadcastCollection;
 
   uIOhook.on("keydown", () => {
     resetIdle();
@@ -103,6 +113,7 @@ export function initInputEngine(getWindow: WindowGetter): void {
 
 export function stopInputEngine(): void {
   uIOhook.stop();
+  uIOhook.removeAllListeners();
 
   if (idleTimer) {
     clearTimeout(idleTimer);
@@ -117,5 +128,12 @@ export function stopInputEngine(): void {
     pushTimer = null;
   }
 
+  _initialized = false;
+  accumulatedMovePx = 0;
+  mouseInitialized = false;
+  lastMouseX = 0;
+  lastMouseY = 0;
+  isIdle = false;
+  lastIdleResetAt = 0;
   flushState();
 }

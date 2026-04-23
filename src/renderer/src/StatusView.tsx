@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import type { StatusInfo } from "../../shared/ipc";
-import { IPC_CHANNELS, GROWTH_BANDS } from "../../shared/ipc";
+import {
+  GROWTH_BANDS,
+  STAGE_BUD_BAND,
+  STAGE_BLOOM_BAND,
+} from "../../shared/ipc";
 import { PLANT_REGISTRY } from "./plantRegistry";
+import { ipcGetStatus, onStateUpdate } from "./ipcClient";
 
 function calcDayNumber(startedAt: number): number {
   const s = new Date(startedAt);
@@ -29,12 +34,19 @@ export default function StatusView(): React.JSX.Element {
   const [info, setInfo] = useState<StatusInfo | null>(null);
 
   useEffect(() => {
-    window.electron.ipcRenderer
-      .invoke(IPC_CHANNELS.GET_STATUS)
+    ipcGetStatus()
       .then((data: StatusInfo) => setInfo(data))
       .catch((error) => {
         console.error("Failed to load status:", error);
       });
+
+    const removeStateListener = onStateUpdate((s) => {
+      setInfo((prev) => (prev ? { ...prev, state: s } : null));
+    });
+
+    return () => {
+      removeStateListener();
+    };
   }, []);
 
   if (!info) {
@@ -56,14 +68,15 @@ export default function StatusView(): React.JSX.Element {
     state.growthStage === "seedling"
       ? Math.max(
           0,
-          Math.ceil((growthThreshold * 3) / (GROWTH_BANDS - 1)) -
+          Math.ceil((growthThreshold * STAGE_BUD_BAND) / (GROWTH_BANDS - 1)) -
             state.totalPoints,
         )
       : state.growthStage === "bud"
         ? Math.max(
             0,
-            Math.ceil((growthThreshold * 6) / (GROWTH_BANDS - 1)) -
-              state.totalPoints,
+            Math.ceil(
+              (growthThreshold * STAGE_BLOOM_BAND) / (GROWTH_BANDS - 1),
+            ) - state.totalPoints,
           )
         : state.bloomedPlantId === null
           ? Math.max(0, growthThreshold - state.totalPoints)

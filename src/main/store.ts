@@ -6,14 +6,28 @@ import type {
   PlantId,
   PlantState,
 } from "../shared/ipc";
-import { PLANT_IDS, GROWTH_BANDS } from "../shared/ipc";
+import {
+  PLANT_IDS,
+  GROWTH_BANDS,
+  calcBandIndex,
+  STAGE_BUD_BAND,
+  STAGE_BLOOM_BAND,
+  isPlantState,
+  isCollectionEntryArray,
+} from "../shared/ipc";
 export type {
   CollectionEntry,
   GrowthStage,
   PlantId,
   PlantState,
 } from "../shared/ipc";
-export { PLANT_IDS, IPC_CHANNELS, GROWTH_BANDS } from "../shared/ipc";
+export {
+  PLANT_IDS,
+  IPC_CHANNELS,
+  GROWTH_BANDS,
+  STAGE_BUD_BAND,
+  STAGE_BLOOM_BAND,
+} from "../shared/ipc";
 
 const isDev = process.env.NODE_ENV === "development";
 export const GROWTH_THRESHOLD = isDev ? 1_000 : 15_000;
@@ -26,17 +40,13 @@ function pickRandomDefault(ids: readonly PlantId[]): PlantId {
 }
 
 export function checkGrowth(): void {
-  const bandIndex =
-    _state.totalPoints >= GROWTH_THRESHOLD
-      ? GROWTH_BANDS - 1
-      : Math.min(
-          Math.floor(
-            (_state.totalPoints * (GROWTH_BANDS - 1)) / GROWTH_THRESHOLD,
-          ),
-          GROWTH_BANDS - 2,
-        );
+  const bandIndex = calcBandIndex(_state.totalPoints, GROWTH_THRESHOLD);
   const newStage: GrowthStage =
-    bandIndex < 3 ? "seedling" : bandIndex < 6 ? "bud" : "bloom";
+    bandIndex < STAGE_BUD_BAND
+      ? "seedling"
+      : bandIndex < STAGE_BLOOM_BAND
+        ? "bud"
+        : "bloom";
   _state.growthStage = newStage;
   if (bandIndex === GROWTH_BANDS - 1 && !_state.bloomedPlantId) {
     _state.bloomedPlantId = _state.plantId;
@@ -88,8 +98,27 @@ let _privacyConsent: boolean = false;
 export async function initStore(): Promise<void> {
   const { default: Store } = await import("electron-store");
   _store = new Store<AppStore>({ defaults: APP_DEFAULTS });
-  _state = _store.get("plant") as PlantState;
-  _collection = _store.get("collection") as CollectionEntry[];
+  const rawPlant = _store.get("plant");
+  if (isPlantState(rawPlant)) {
+    _state = rawPlant;
+  } else {
+    console.warn("[store] invalid plant state in store, resetting:", rawPlant);
+    _state = { ...PLANT_DEFAULTS };
+    _store.set("plant", _state);
+  }
+
+  const rawCollection = _store.get("collection");
+  if (isCollectionEntryArray(rawCollection)) {
+    _collection = rawCollection;
+  } else {
+    console.warn(
+      "[store] invalid collection in store, resetting:",
+      rawCollection,
+    );
+    _collection = [];
+    _store.set("collection", _collection);
+  }
+
   _privacyConsent = _store.get("privacyConsent") as boolean;
   if (_state.startedAt === null && _state.totalPoints === 0) {
     resetPlant(Date.now());
@@ -99,6 +128,7 @@ export async function initStore(): Promise<void> {
     flushState();
   }
   const stageBefore = _state.growthStage;
+  _state.bloomedPlantId = null;
   checkGrowth();
   if (_state.growthStage !== stageBefore) {
     if (_state.bloomedPlantId !== null) {

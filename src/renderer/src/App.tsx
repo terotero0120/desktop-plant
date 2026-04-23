@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import type { PlantState, StatusInfo } from "../../shared/ipc";
-import { IPC_CHANNELS, GROWTH_BANDS } from "../../shared/ipc";
+import { calcBandIndex } from "../../shared/ipc";
 import potSvg from "./assets/plants/pot.svg";
 import { PLANT_REGISTRY, SHARED_PLANT_SVGS } from "./plantRegistry";
+import {
+  ipcGetStatus,
+  onStateUpdate,
+  ipcSendShowContextMenu,
+} from "./ipcClient";
 
 const initialState: PlantState = {
   totalPoints: 0,
@@ -11,14 +16,6 @@ const initialState: PlantState = {
   bloomedPlantId: null,
   startedAt: null,
 };
-
-function calcBandIndex(totalPoints: number, growthThreshold: number): number {
-  if (totalPoints >= growthThreshold) return GROWTH_BANDS - 1;
-  return Math.min(
-    Math.floor((totalPoints * (GROWTH_BANDS - 1)) / growthThreshold),
-    GROWTH_BANDS - 2,
-  );
-}
 
 function getPlantImage(state: PlantState, growthThreshold: number): string {
   const band = calcBandIndex(state.totalPoints, growthThreshold);
@@ -31,23 +28,16 @@ function App(): React.JSX.Element {
   const [growthThreshold, setGrowthThreshold] = useState(15_000);
 
   useEffect(() => {
-    window.electron.ipcRenderer
-      .invoke(IPC_CHANNELS.GET_STATUS)
-      .then((info: StatusInfo) => {
-        setState(info.state);
-        setGrowthThreshold(info.growthThreshold);
-      });
+    ipcGetStatus().then((info: StatusInfo) => {
+      setState(info.state);
+      setGrowthThreshold(info.growthThreshold);
+    });
 
-    const removeStateListener = window.electron.ipcRenderer.on(
-      IPC_CHANNELS.STATE_UPDATE,
-      (_e, s: PlantState) => {
-        setState(s);
-      },
-    );
+    const removeStateListener = onStateUpdate((s) => setState(s));
 
     const onContextMenu = (e: MouseEvent): void => {
       e.preventDefault();
-      window.electron.ipcRenderer.send(IPC_CHANNELS.SHOW_CONTEXT_MENU);
+      ipcSendShowContextMenu();
     };
     window.addEventListener("contextmenu", onContextMenu);
 
