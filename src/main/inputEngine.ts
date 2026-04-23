@@ -26,7 +26,6 @@ type StateBroadcaster = () => void;
 type CollectionBroadcaster = () => void;
 let _broadcastState: StateBroadcaster = () => {};
 let _broadcastCollection: CollectionBroadcaster = () => {};
-let _lastBroadcastHadBloom = false;
 let _initialized = false;
 
 function resetIdle(): void {
@@ -46,7 +45,11 @@ function addPoints(pts: number): void {
   // すべての呼び出し元（keydown/click/mousemove ハンドラ）は addPoints の前に resetIdle() を呼ぶため
   // isIdle=true がここに到達するのは将来の呼び出し元がその規約を破った場合のみ（安全網）
   if (isIdle) return;
+  const prevBloomed = getState().bloomedPlantId !== null;
   incrementPoints(pts);
+  if (!prevBloomed && getState().bloomedPlantId !== null) {
+    _broadcastCollection();
+  }
   schedulePush();
 }
 
@@ -54,12 +57,7 @@ function schedulePush(): void {
   if (pushTimer) return;
   pushTimer = setTimeout(() => {
     pushTimer = null;
-    const state = getState();
     _broadcastState();
-    if (state.bloomedPlantId !== null && !_lastBroadcastHadBloom) {
-      _broadcastCollection();
-    }
-    _lastBroadcastHadBloom = state.bloomedPlantId !== null;
   }, STATE_PUSH_MS);
 }
 
@@ -137,6 +135,5 @@ export function stopInputEngine(): void {
   lastMouseY = 0;
   isIdle = false;
   lastIdleResetAt = 0;
-  _lastBroadcastHadBloom = false;
   flushState();
 }

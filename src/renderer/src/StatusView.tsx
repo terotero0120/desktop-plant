@@ -41,9 +41,7 @@ export default function StatusView(): React.JSX.Element {
       });
 
     const removeStateListener = onStateUpdate((s) => {
-      setInfo((prev) =>
-        prev ? { ...prev, state: s } : { state: s, growthThreshold: 15_000 },
-      );
+      setInfo((prev) => (prev ? { ...prev, state: s } : null));
     });
 
     return () => {
