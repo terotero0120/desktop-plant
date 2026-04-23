@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plant SVG Viewer - dev tools</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 24px;
+      background: #f5f5f5;
+    }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #333;
+    }
+    select {
+      font-size: 14px;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 24px;
+      cursor: pointer;
+    }
+    #svg-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .svg-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      width: 120px;
+    }
+    .svg-card img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+    }
+    .svg-card .label {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Plant SVG Viewer</h1>
+  <select id="flower-select">
+    <option value="rose">Rose</option>
+    <option value="sunflower">Sunflower</option>
+    <option value="tulip">Tulip</option>
+  </select>
+  <div id="svg-container"></div>
+  <script>
+    const FRAME_COUNT = 8;
+    const BASE_PATH = '../src/renderer/src/assets/plants';
+
+    function render(flower) {
+      const container = document.getElementById('svg-container');
+      container.innerHTML = '';
+      for (let i = 1; i <= FRAME_COUNT; i++) {
+        const card = document.createElement('div');
+        card.className = 'svg-card';
+
+        const img = document.createElement('img');
+        img.src = `${BASE_PATH}/${flower}/${i}.svg`;
+        img.alt = `${flower} ${i}`;
+
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = `${i}.svg`;
+
+        card.appendChild(img);
+        card.appendChild(label);
+        container.appendChild(card);
+      }
+    }
+
+    const select = document.getElementById('flower-select');
+    select.addEventListener('change', () => render(select.value));
+    render(select.value);
+  </script>
+</body>
+</html>
