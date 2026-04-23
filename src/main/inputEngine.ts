@@ -115,6 +115,7 @@ export function initInputEngine(
 
 export function stopInputEngine(): void {
   uIOhook.stop();
+  uIOhook.removeAllListeners();
 
   if (idleTimer) {
     clearTimeout(idleTimer);

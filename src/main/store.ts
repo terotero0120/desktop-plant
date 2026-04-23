@@ -128,6 +128,7 @@ export async function initStore(): Promise<void> {
     flushState();
   }
   const stageBefore = _state.growthStage;
+  _state.bloomedPlantId = null;
   checkGrowth();
   if (_state.growthStage !== stageBefore) {
     if (_state.bloomedPlantId !== null) {

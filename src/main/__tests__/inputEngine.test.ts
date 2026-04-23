@@ -8,6 +8,7 @@ import type {
 
 describe("inputEngine", () => {
   let handlers: Record<string, (e?: unknown) => void>;
+  let handlerLists: Record<string, Array<(e?: unknown) => void>>;
   let mockIncrementPoints: ReturnType<typeof vi.fn>;
   let mockFlushState: ReturnType<typeof vi.fn>;
   let initInputEngine: typeof InitInputEngine;
@@ -16,6 +17,7 @@ describe("inputEngine", () => {
   beforeEach(async () => {
     vi.resetModules();
     handlers = {};
+    handlerLists = {};
     mockIncrementPoints = vi.fn();
     mockFlushState = vi.fn();
 
@@ -23,10 +25,18 @@ describe("inputEngine", () => {
     vi.doMock("uiohook-napi", () => ({
       uIOhook: {
         on: vi.fn((event: string, handler: (e?: unknown) => void) => {
-          handlers[event] = handler;
+          if (!handlerLists[event]) handlerLists[event] = [];
+          handlerLists[event].push(handler);
+          handlers[event] = (e?: unknown) =>
+            handlerLists[event].forEach((h) => h(e));
         }),
         start: vi.fn(),
         stop: vi.fn(),
+        removeAllListeners: vi.fn(() => {
+          Object.keys(handlerLists).forEach((k) => {
+            handlerLists[k] = [];
+          });
+        }),
       },
     }));
 
