@@ -10,7 +10,8 @@ import {
   ipcMain,
   systemPreferences,
 } from "electron";
-import { join } from "path";
+import { join, sep } from "path";
+import { fileURLToPath } from "url";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import {
   initStore,
@@ -281,9 +282,32 @@ app.whenReady().then(async () => {
 
   app.on("web-contents-created", (_, wc) => {
     wc.on("will-navigate", (event, url) => {
-      const rendererUrl = process.env["ELECTRON_RENDERER_URL"];
-      if (is.dev && rendererUrl && url.startsWith(rendererUrl)) return;
-      if (!is.dev && url.startsWith("file://")) return;
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        event.preventDefault();
+        return;
+      }
+
+      if (is.dev) {
+        const rendererUrl = process.env["ELECTRON_RENDERER_URL"];
+        try {
+          if (rendererUrl && parsed.origin === new URL(rendererUrl).origin)
+            return;
+        } catch {
+          // 不正な ELECTRON_RENDERER_URL はブロック
+        }
+      } else if (parsed.protocol === "file:") {
+        try {
+          const filePath = fileURLToPath(url);
+          const rendererDir = join(__dirname, "..", "renderer");
+          if (filePath.startsWith(rendererDir + sep)) return;
+        } catch {
+          // UNC などローカル以外の file URL はブロック
+        }
+      }
+
       event.preventDefault();
     });
   });
