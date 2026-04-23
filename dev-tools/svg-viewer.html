@@ -24,8 +24,8 @@
       cursor: pointer;
     }
     #svg-container {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
     }
     .svg-card {
@@ -34,11 +34,10 @@
       border-radius: 8px;
       padding: 12px;
       text-align: center;
-      width: 120px;
     }
     .svg-card img {
-      width: 96px;
-      height: 96px;
+      width: 144px;
+      height: 144px;
       object-fit: contain;
     }
     .svg-card .label {
