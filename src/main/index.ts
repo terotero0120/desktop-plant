@@ -10,7 +10,8 @@ import {
   ipcMain,
   systemPreferences,
 } from "electron";
-import { join } from "path";
+import { join, sep } from "path";
+import { fileURLToPath } from "url";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import {
   initStore,
@@ -217,6 +218,16 @@ function createTray(onNextSeed: () => void): void {
   });
 }
 
+function openExternalSafe(url: string): void {
+  try {
+    if (new URL(url).protocol === "https:") {
+      shell.openExternal(url);
+    }
+  } catch {
+    // 不正なURLは無視する
+  }
+}
+
 function createWindow(): void {
   const {
     x: workX,
@@ -250,11 +261,6 @@ function createWindow(): void {
     mainWindow = null;
   });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: "deny" };
-  });
-
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
@@ -267,6 +273,43 @@ app.whenReady().then(async () => {
 
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
+  });
+
+  app.on("web-contents-created", (_, wc) => {
+    wc.setWindowOpenHandler((details) => {
+      openExternalSafe(details.url);
+      return { action: "deny" };
+    });
+
+    wc.on("will-navigate", (event, url) => {
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        event.preventDefault();
+        return;
+      }
+
+      if (is.dev) {
+        const rendererUrl = process.env["ELECTRON_RENDERER_URL"];
+        try {
+          if (rendererUrl && parsed.origin === new URL(rendererUrl).origin)
+            return;
+        } catch {
+          // 不正な ELECTRON_RENDERER_URL はブロック
+        }
+      } else if (parsed.protocol === "file:") {
+        try {
+          const filePath = fileURLToPath(url);
+          const rendererDir = join(__dirname, "..", "renderer");
+          if (filePath.startsWith(rendererDir + sep)) return;
+        } catch {
+          // UNC などローカル以外の file URL はブロック
+        }
+      }
+
+      event.preventDefault();
+    });
   });
 
   try {
