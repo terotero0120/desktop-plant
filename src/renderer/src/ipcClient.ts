@@ -9,14 +9,6 @@ export function ipcGetCollection(): Promise<CollectionEntry[]> {
   return window.electron.ipcRenderer.invoke(IPC_CHANNELS.GET_COLLECTION);
 }
 
-export function ipcGetState(): Promise<PlantState> {
-  return window.electron.ipcRenderer.invoke(IPC_CHANNELS.GET_STATE);
-}
-
-export function ipcPlantNextSeed(): Promise<PlantState> {
-  return window.electron.ipcRenderer.invoke(IPC_CHANNELS.PLANT_NEXT_SEED);
-}
-
 export function onStateUpdate(
   handler: (state: PlantState) => void,
 ): () => void {

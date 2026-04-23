@@ -18,6 +18,7 @@ import {
   GROWTH_THRESHOLD,
   GROWTH_BANDS,
 } from "../store";
+import { isPlantState, isCollectionEntryArray } from "../../shared/ipc";
 
 beforeEach(() => {
   resetPlant();
@@ -334,5 +335,111 @@ describe("incrementPoints + コレクション登録", () => {
     });
     incrementPoints(100);
     expect(getCollection()).toHaveLength(0);
+  });
+});
+
+describe("type guards", () => {
+  describe("isPlantState", () => {
+    it("有効な PlantState を受け入れる", () => {
+      expect(
+        isPlantState({
+          totalPoints: 0,
+          growthStage: "seedling",
+          plantId: "rose",
+          bloomedPlantId: null,
+          startedAt: null,
+        }),
+      ).toBe(true);
+    });
+
+    it("null を拒否する", () => {
+      expect(isPlantState(null)).toBe(false);
+    });
+
+    it("不正な growthStage を拒否する", () => {
+      expect(
+        isPlantState({
+          totalPoints: 0,
+          growthStage: "sprout",
+          plantId: "rose",
+          bloomedPlantId: null,
+          startedAt: null,
+        }),
+      ).toBe(false);
+    });
+
+    it("不正な plantId を拒否する", () => {
+      expect(
+        isPlantState({
+          totalPoints: 0,
+          growthStage: "seedling",
+          plantId: "cactus",
+          bloomedPlantId: null,
+          startedAt: null,
+        }),
+      ).toBe(false);
+    });
+
+    it("負の totalPoints を拒否する", () => {
+      expect(
+        isPlantState({
+          totalPoints: -1,
+          growthStage: "seedling",
+          plantId: "rose",
+          bloomedPlantId: null,
+          startedAt: null,
+        }),
+      ).toBe(false);
+    });
+
+    it("bloomedPlantId が有効な PlantId の場合を受け入れる", () => {
+      expect(
+        isPlantState({
+          totalPoints: 15000,
+          growthStage: "bloom",
+          plantId: "rose",
+          bloomedPlantId: "rose",
+          startedAt: 1700000000000,
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe("isCollectionEntryArray", () => {
+    it("空配列を受け入れる", () => {
+      expect(isCollectionEntryArray([])).toBe(true);
+    });
+
+    it("有効なコレクションを受け入れる", () => {
+      expect(
+        isCollectionEntryArray([
+          {
+            plantId: "rose",
+            firstBloomed: new Date().toISOString(),
+            totalBlooms: 1,
+          },
+        ]),
+      ).toBe(true);
+    });
+
+    it("null を拒否する", () => {
+      expect(isCollectionEntryArray(null)).toBe(false);
+    });
+
+    it("オブジェクトを拒否する", () => {
+      expect(isCollectionEntryArray({})).toBe(false);
+    });
+
+    it("totalBlooms が 0 のエントリを拒否する", () => {
+      expect(
+        isCollectionEntryArray([
+          {
+            plantId: "rose",
+            firstBloomed: new Date().toISOString(),
+            totalBlooms: 0,
+          },
+        ]),
+      ).toBe(false);
+    });
   });
 });

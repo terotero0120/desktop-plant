@@ -27,6 +27,7 @@ type CollectionBroadcaster = () => void;
 let _broadcastState: StateBroadcaster = () => {};
 let _broadcastCollection: CollectionBroadcaster = () => {};
 let _lastBroadcastHadBloom = false;
+let _initialized = false;
 
 function resetIdle(): void {
   const now = Date.now();
@@ -66,6 +67,9 @@ export function initInputEngine(
   broadcastState: StateBroadcaster,
   broadcastCollection: CollectionBroadcaster,
 ): void {
+  if (_initialized) return;
+  _initialized = true;
+
   _broadcastState = broadcastState;
   _broadcastCollection = broadcastCollection;
 
@@ -111,6 +115,7 @@ export function initInputEngine(
 
 export function stopInputEngine(): void {
   uIOhook.stop();
+  uIOhook.removeAllListeners();
 
   if (idleTimer) {
     clearTimeout(idleTimer);
@@ -125,6 +130,13 @@ export function stopInputEngine(): void {
     pushTimer = null;
   }
 
+  _initialized = false;
+  accumulatedMovePx = 0;
+  mouseInitialized = false;
+  lastMouseX = 0;
+  lastMouseY = 0;
+  isIdle = false;
+  lastIdleResetAt = 0;
   _lastBroadcastHadBloom = false;
   flushState();
 }
