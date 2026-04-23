@@ -217,6 +217,16 @@ function createTray(onNextSeed: () => void): void {
   });
 }
 
+function openExternalSafe(url: string): void {
+  try {
+    if (new URL(url).protocol === "https:") {
+      shell.openExternal(url);
+    }
+  } catch {
+    // 不正なURLは無視する
+  }
+}
+
 function createWindow(): void {
   const {
     x: workX,
@@ -251,7 +261,7 @@ function createWindow(): void {
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
+    openExternalSafe(details.url);
     return { action: "deny" };
   });
 
@@ -267,6 +277,15 @@ app.whenReady().then(async () => {
 
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
+  });
+
+  app.on("web-contents-created", (_, wc) => {
+    wc.on("will-navigate", (event, url) => {
+      const rendererUrl = process.env["ELECTRON_RENDERER_URL"];
+      if (is.dev && rendererUrl && url.startsWith(rendererUrl)) return;
+      if (!is.dev && url.startsWith("file://")) return;
+      event.preventDefault();
+    });
   });
 
   try {
