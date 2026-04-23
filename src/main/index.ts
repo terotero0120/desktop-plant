@@ -261,11 +261,6 @@ function createWindow(): void {
     mainWindow = null;
   });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    openExternalSafe(details.url);
-    return { action: "deny" };
-  });
-
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
@@ -281,6 +276,11 @@ app.whenReady().then(async () => {
   });
 
   app.on("web-contents-created", (_, wc) => {
+    wc.setWindowOpenHandler((details) => {
+      openExternalSafe(details.url);
+      return { action: "deny" };
+    });
+
     wc.on("will-navigate", (event, url) => {
       let parsed: URL;
       try {
