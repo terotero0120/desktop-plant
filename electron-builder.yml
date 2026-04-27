@@ -1,5 +1,5 @@
 appId: com.desktopplant.app
-productName: desktop-plant
+productName: デスクプランター
 directories:
   buildResources: build
 files:

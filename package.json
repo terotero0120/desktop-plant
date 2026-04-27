@@ -1,9 +1,10 @@
 {
   "name": "desktop-plant",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "キーボード入力やマウス操作で観葉植物を育てるデスクトップアプリ",
+  "license": "MIT",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "デスクプランター",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "test": "vitest run",
