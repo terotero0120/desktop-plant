@@ -252,6 +252,8 @@ function createWindow(): void {
     webPreferences: COMMON_WEB_PREFERENCES,
   });
 
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+
   mainWindow.on("ready-to-show", () => {
     applyOverlaySettings(mainWindow!);
     mainWindow?.show();
@@ -342,6 +344,10 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC_CHANNELS.PLANT_NEXT_SEED, () => {
     doNextSeed();
     return getState();
+  });
+
+  ipcMain.on(IPC_CHANNELS.SET_IGNORE_MOUSE_EVENTS, (_, ignore: boolean) => {
+    mainWindow?.setIgnoreMouseEvents(ignore, { forward: true });
   });
 
   ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {

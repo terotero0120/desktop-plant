@@ -7,6 +7,7 @@ import {
   ipcGetStatus,
   onStateUpdate,
   ipcSendShowContextMenu,
+  ipcSendIgnoreMouseEvents,
 } from "./ipcClient";
 
 const initialState: PlantState = {
@@ -41,9 +42,28 @@ function App(): React.JSX.Element {
     };
     window.addEventListener("contextmenu", onContextMenu);
 
+    let isClickThrough = true;
+    const onMouseMove = (e: MouseEvent): void => {
+      const overImage = (e.target as HTMLElement).tagName === "IMG";
+      if (overImage === isClickThrough) {
+        isClickThrough = !overImage;
+        ipcSendIgnoreMouseEvents(!overImage);
+      }
+    };
+    const onMouseLeave = (e: MouseEvent): void => {
+      if (e.relatedTarget === null && !isClickThrough) {
+        isClickThrough = true;
+        ipcSendIgnoreMouseEvents(true);
+      }
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseleave", onMouseLeave);
+
     return () => {
       removeStateListener();
       window.removeEventListener("contextmenu", onContextMenu);
+      window.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseleave", onMouseLeave);
     };
   }, []);
 
