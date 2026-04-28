@@ -83,5 +83,4 @@ export const IPC_CHANNELS = {
   GET_COLLECTION: "plant:get-collection",
   GET_STATUS: "plant:get-status",
   COLLECTION_UPDATE: "plant:collection-update",
-  SET_IGNORE_MOUSE_EVENTS: "plant:set-ignore-mouse-events",
 } as const;

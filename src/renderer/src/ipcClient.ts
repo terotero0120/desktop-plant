@@ -30,10 +30,3 @@ export function onCollectionUpdate(
 export function ipcSendShowContextMenu(): void {
   window.electron.ipcRenderer.send(IPC_CHANNELS.SHOW_CONTEXT_MENU);
 }
-
-export function ipcSendIgnoreMouseEvents(ignore: boolean): void {
-  window.electron.ipcRenderer.send(
-    IPC_CHANNELS.SET_IGNORE_MOUSE_EVENTS,
-    ignore,
-  );
-}
