@@ -443,3 +443,61 @@ describe("type guards", () => {
     });
   });
 });
+
+describe("initStore: privacyConsent 復元バリデーション", () => {
+  const validPlant = {
+    totalPoints: 0,
+    growthStage: "seedling",
+    plantId: "rose",
+    bloomedPlantId: null,
+    startedAt: Date.now(),
+  };
+
+  async function runInitWithConsent(rawConsent: unknown) {
+    const data: Record<string, unknown> = {
+      privacyConsent: rawConsent,
+      plant: validPlant,
+      collection: [],
+    };
+    const mockSet = vi.fn((key: string, value: unknown) => {
+      data[key] = value;
+    });
+    vi.doMock("electron-store", () => ({
+      default: class {
+        get(key: string) {
+          return data[key];
+        }
+        set(key: string, value: unknown) {
+          mockSet(key, value);
+        }
+      },
+    }));
+    vi.resetModules();
+    const store = await import("../store");
+    store.resetConsent();
+    await store.initStore();
+    vi.doUnmock("electron-store");
+    return { getConsent: store.getConsent, mockSet };
+  }
+
+  it("true を復元すると getConsent() が true になる", async () => {
+    const { getConsent } = await runInitWithConsent(true);
+    expect(getConsent()).toBe(true);
+  });
+
+  it("false を復元すると getConsent() が false になる", async () => {
+    const { getConsent } = await runInitWithConsent(false);
+    expect(getConsent()).toBe(false);
+  });
+
+  it.each([
+    { label: '"false"（文字列）は false にフォールバックしてストアを上書きする', raw: "false" },
+    { label: "null は false にフォールバックしてストアを上書きする", raw: null },
+    { label: "undefined は false にフォールバックしてストアを上書きする", raw: undefined },
+    { label: "数値 1 は false にフォールバックしてストアを上書きする", raw: 1 },
+  ])("$label", async ({ raw }) => {
+    const { getConsent, mockSet } = await runInitWithConsent(raw);
+    expect(getConsent()).toBe(false);
+    expect(mockSet).toHaveBeenCalledWith("privacyConsent", false);
+  });
+});

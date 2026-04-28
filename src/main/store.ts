@@ -119,7 +119,13 @@ export async function initStore(): Promise<void> {
     _store.set("collection", _collection);
   }
 
-  _privacyConsent = _store.get("privacyConsent") as boolean;
+  const rawConsent = _store.get("privacyConsent");
+  if (typeof rawConsent === "boolean") {
+    _privacyConsent = rawConsent;
+  } else {
+    _privacyConsent = false;
+    _store.set("privacyConsent", false);
+  }
   if (_state.startedAt === null && _state.totalPoints === 0) {
     resetPlant(Date.now());
     flushState();
