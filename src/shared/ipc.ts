@@ -36,6 +36,31 @@ export interface StatusInfo {
   growthThreshold: number;
 }
 
+export function calcRemainingToNextStage(
+  totalPoints: number,
+  growthThreshold: number,
+  growthStage: GrowthStage,
+): number | null {
+  if (growthStage === "seedling") {
+    return Math.max(
+      0,
+      Math.ceil((growthThreshold * STAGE_BUD_BAND) / (GROWTH_BANDS - 1)) -
+        totalPoints,
+    );
+  }
+  if (growthStage === "bud") {
+    return Math.max(
+      0,
+      Math.ceil((growthThreshold * STAGE_BLOOM_BAND) / (GROWTH_BANDS - 1)) -
+        totalPoints,
+    );
+  }
+  if (totalPoints >= growthThreshold) {
+    return null;
+  }
+  return Math.max(0, growthThreshold - totalPoints);
+}
+
 export function isGrowthStage(v: unknown): v is GrowthStage {
   return v === "seedling" || v === "bud" || v === "bloom";
 }
