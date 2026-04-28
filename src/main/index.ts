@@ -207,13 +207,13 @@ function createTray(onNextSeed: () => void): void {
   tray.setContextMenu(contextMenu);
 
   tray.on("click", () => {
-    if (mainWindow) {
-      if (mainWindow.isVisible()) {
-        mainWindow.hide();
-      } else {
-        mainWindow.show();
-        applyOverlaySettings(mainWindow);
-      }
+    if (!mainWindow) {
+      createWindow();
+    } else if (mainWindow.isVisible()) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+      applyOverlaySettings(mainWindow);
     }
   });
 }
