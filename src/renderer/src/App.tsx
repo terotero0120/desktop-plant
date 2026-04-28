@@ -28,10 +28,14 @@ function App(): React.JSX.Element {
   const [growthThreshold, setGrowthThreshold] = useState(15_000);
 
   useEffect(() => {
-    ipcGetStatus().then((info: StatusInfo) => {
-      setState(info.state);
-      setGrowthThreshold(info.growthThreshold);
-    });
+    ipcGetStatus()
+      .then((info: StatusInfo) => {
+        setState(info.state);
+        setGrowthThreshold(info.growthThreshold);
+      })
+      .catch((error) => {
+        console.error("Failed to load status:", error);
+      });
 
     const removeStateListener = onStateUpdate((s) => setState(s));
 
