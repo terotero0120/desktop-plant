@@ -59,10 +59,9 @@ function broadcastCollection(): void {
 }
 
 function applyOverlaySettings(win: BrowserWindow): void {
-  win.setAlwaysOnTop(true, "floating");
   // setVisibleOnAllWorkspaces is macOS-only (Electron limitation)
   if (process.platform === "darwin") {
-    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false });
   }
 }
 
@@ -244,7 +243,7 @@ function createWindow(): void {
     frame: false,
     transparent: true,
     hasShadow: false,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     skipTaskbar: true,
     resizable: false,
     show: false,
