@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import type { PlantState, StatusInfo } from "../../shared/ipc";
 import { calcBandIndex } from "../../shared/ipc";
-import potSvg from "./assets/plants/pot.svg";
-import { PLANT_REGISTRY, SHARED_PLANT_SVGS } from "./plantRegistry";
+import { PLANT_REGISTRY } from "./plantRegistry";
 import {
   ipcGetStatus,
   onStateUpdate,
@@ -19,8 +18,7 @@ const initialState: PlantState = {
 
 function getPlantImage(state: PlantState, growthThreshold: number): string {
   const band = calcBandIndex(state.totalPoints, growthThreshold);
-  if (band === 0) return SHARED_PLANT_SVGS.seedling;
-  return PLANT_REGISTRY[state.plantId].svgs[band - 1];
+  return PLANT_REGISTRY[state.plantId].pngs[Math.max(0, band - 1)];
 }
 
 function App(): React.JSX.Element {
@@ -51,23 +49,14 @@ function App(): React.JSX.Element {
     };
   }, []);
 
-  const layerStyle: React.CSSProperties = {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "200px",
-    height: "300px",
-  };
-
   return (
     <div style={{ position: "relative", width: "200px", height: "300px" }}>
       <img
         src={getPlantImage(state, growthThreshold)}
         alt="plant"
-        style={layerStyle}
+        style={{ display: "block", width: "200px", height: "300px" }}
         draggable={false}
       />
-      <img src={potSvg} alt="pot" style={layerStyle} draggable={false} />
       {import.meta.env.DEV && (
         <div
           style={{

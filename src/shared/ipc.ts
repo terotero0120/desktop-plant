@@ -1,6 +1,13 @@
 export type GrowthStage = "seedling" | "bud" | "bloom";
 
-export const PLANT_IDS = ["rose", "sunflower", "tulip"] as const;
+export const PLANT_IDS = [
+  "rose",
+  "sunflower",
+  "tulip",
+  "hydrangea",
+  "higanbana",
+  "lavender",
+] as const;
 export type PlantId = (typeof PLANT_IDS)[number];
 export const GROWTH_BANDS = 9;
 export const STAGE_BUD_BAND = 3;

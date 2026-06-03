@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plant SVG Viewer - dev tools</title>
+  <title>Plant PNG Viewer - dev tools</title>
   <style>
     body {
       font-family: sans-serif;
@@ -48,11 +48,14 @@
   </style>
 </head>
 <body>
-  <h1>Plant SVG Viewer</h1>
+  <h1>Plant PNG Viewer</h1>
   <select id="flower-select">
     <option value="rose">Rose</option>
     <option value="sunflower">Sunflower</option>
     <option value="tulip">Tulip</option>
+    <option value="hydrangea">Hydrangea (アジサイ)</option>
+    <option value="higanbana">Higanbana (彼岸花)</option>
+    <option value="lavender">Lavender (ラベンダー)</option>
   </select>
   <div id="svg-container"></div>
   <script>
@@ -67,12 +70,12 @@
         card.className = 'svg-card';
 
         const img = document.createElement('img');
-        img.src = `${BASE_PATH}/${flower}/${i}.svg`;
+        img.src = `${BASE_PATH}/${flower}/${i}.png`;
         img.alt = `${flower} ${i}`;
 
         const label = document.createElement('div');
         label.className = 'label';
-        label.textContent = `${i}.svg`;
+        label.textContent = `${i}.png`;
 
         card.appendChild(img);
         card.appendChild(label);
