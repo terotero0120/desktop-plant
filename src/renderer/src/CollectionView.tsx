@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CollectionEntry } from "../../shared/ipc";
 import { PLANT_IDS } from "../../shared/ipc";
-import { PLANT_REGISTRY, SHARED_PLANT_SVGS } from "./plantRegistry";
+import { PLANT_REGISTRY } from "./plantRegistry";
 import { ipcGetCollection, onCollectionUpdate } from "./ipcClient";
 
 function formatDate(iso: string): string {
@@ -51,7 +51,7 @@ export default function CollectionView(): React.JSX.Element {
             <li key={id} style={entry ? styles.item : lockedItemStyle}>
               <img
                 src={
-                  entry ? PLANT_REGISTRY[id].svg : SHARED_PLANT_SVGS.seedling
+                  entry ? PLANT_REGISTRY[id].png : PLANT_REGISTRY[id].pngs[0]
                 }
                 alt={entry ? PLANT_REGISTRY[id].name : "？？？"}
                 style={entry ? styles.plantImg : styles.plantImgLocked}
