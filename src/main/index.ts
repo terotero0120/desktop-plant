@@ -65,6 +65,8 @@ function applyOverlaySettings(win: BrowserWindow): void {
   }
 }
 
+let accessibilityPollTimer: ReturnType<typeof setInterval> | null = null;
+
 async function initInputEngineWithPermissionCheck(): Promise<void> {
   if (process.platform !== "darwin") {
     initInputEngine(broadcastState, broadcastCollection);
@@ -76,6 +78,10 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
     return;
   }
 
+  // prompt=true でアクセシビリティの一覧にアプリを登録し、OS のプロンプトを出す。
+  // これを呼ばないと一覧にアプリが現れず、ユーザーが許可できないことがある。
+  systemPreferences.isTrustedAccessibilityClient(true);
+
   const opts = {
     type: "warning" as const,
     title: "アクセシビリティの権限が必要です",
@@ -84,10 +90,10 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
     detail: [
       "【設定手順】",
       "1.「システム設定を開く」をクリック",
-      "2.「アクセシビリティ」の一覧から Desktop Plant を許可",
-      "3. アプリを再起動",
+      "2.「アクセシビリティ」の一覧で デスクプランター をオンにする",
       "",
-      "権限を付与しなくてもアプリは起動しますが、植物の成長機能は動作しません。",
+      "許可するとその場で植物の成長が始まります（アプリの再起動は不要です）。",
+      "権限を付与しなくてもアプリは起動しますが、成長機能は動作しません。",
     ].join("\n"),
     buttons: ["システム設定を開く", "後で設定する"],
     defaultId: 0,
@@ -100,6 +106,18 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
       "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
     );
   }
+
+  // 許可されるまでポーリングし、許可された瞬間に再起動なしで入力エンジンを開始する。
+  accessibilityPollTimer = setInterval(() => {
+    if (systemPreferences.isTrustedAccessibilityClient(false)) {
+      if (accessibilityPollTimer) {
+        clearInterval(accessibilityPollTimer);
+        accessibilityPollTimer = null;
+      }
+      initInputEngine(broadcastState, broadcastCollection);
+      broadcastState();
+    }
+  }, 1500);
 }
 
 function createStatusWindow(): void {
@@ -384,5 +402,9 @@ app.on("window-all-closed", () => {
 
 // 終了前にフックを停止・ポイントをフラッシュ
 app.on("before-quit", () => {
+  if (accessibilityPollTimer) {
+    clearInterval(accessibilityPollTimer);
+    accessibilityPollTimer = null;
+  }
   stopInputEngine();
 });
