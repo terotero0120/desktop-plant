@@ -30,7 +30,7 @@ export {
 } from "../shared/ipc";
 
 const isDev = process.env.NODE_ENV === "development";
-export const GROWTH_THRESHOLD = isDev ? 1_000 : 15_000;
+export const GROWTH_THRESHOLD = isDev ? 2_000 : 30_000;
 
 type PickRandom = (ids: readonly PlantId[]) => PlantId;
 
