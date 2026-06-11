@@ -2,13 +2,13 @@ appId: com.desktopplant.app
 productName: デスクプランター
 directories:
   buildResources: build
+# out/（ビルド成果物）と resources/（トレイアイコン等）のみを同梱する。
+# 本番依存の node_modules（uiohook-napi 等）は electron-builder が自動的に含める。
+# 注意: package.json に "build" フィールドを置くと electron-builder はこの YML を
+# 無視して package.json 側を優先するため、ビルド設定はこのファイルに一本化する。
 files:
-  - '!**/.vscode/*'
-  - '!src/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - out/**/*
+  - resources/**/*
 asarUnpack:
   - resources/**
 win:
@@ -21,13 +21,16 @@ win:
 # ARM64 確認後に x64 を追加し、正式リリース時は nsis に切り替える
 mac:
   identity: '-'
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
+  # extendInfo はマップ形式で書く。リスト形式（- key: value）だと
+  # electron-builder が Info.plist に反映せず、LSUIElement が効かない。
   extendInfo:
-    - LSUIElement: true
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+    LSUIElement: true
+    NSCameraUsageDescription: Application requests access to the device's camera.
+    NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}
