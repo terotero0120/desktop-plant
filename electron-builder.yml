@@ -23,14 +23,10 @@ mac:
   identity: '-'
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  # extendInfo はマップ形式で書く（リスト形式 "- key: value" だと Info.plist に反映されない）。
   # LSUIElement は設定しない: 起動時アクセサリ化すると植物ウィンドウが常に最前面に浮き、
   # デスクトップ専用表示（PR #31）が壊れるため。Dock 非表示は main の app.dock.hide() で行う。
-  extendInfo:
-    NSCameraUsageDescription: Application requests access to the device's camera.
-    NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  # （カメラ/マイク/Documents/Downloads の usage description はこのアプリでは未使用のため付けない。
+  #   extendInfo を追加する場合はリスト形式 "- key: value" ではなくマップ形式で書くこと。）
   notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}

@@ -6,6 +6,7 @@ import {
   Menu,
   dialog,
   nativeImage,
+  Notification,
   screen,
   ipcMain,
   systemPreferences,
@@ -67,6 +68,26 @@ function applyOverlaySettings(win: BrowserWindow): void {
 
 let accessibilityPollTimer: ReturnType<typeof setInterval> | null = null;
 
+const ACCESSIBILITY_POLL_INTERVAL_MS = 1500;
+// 無期限ポーリングを避けるため一定時間で打ち切る（ユーザーが許可しない場合の安全弁）。
+const ACCESSIBILITY_POLL_TIMEOUT_MS = 30 * 60_000;
+
+function stopAccessibilityPolling(): void {
+  if (accessibilityPollTimer) {
+    clearInterval(accessibilityPollTimer);
+    accessibilityPollTimer = null;
+  }
+}
+
+function notifyInputEngineStarted(): void {
+  if (Notification.isSupported()) {
+    new Notification({
+      title: "Typebloom",
+      body: "アクセシビリティを検知しました。植物の成長を開始します🌱",
+    }).show();
+  }
+}
+
 async function initInputEngineWithPermissionCheck(): Promise<void> {
   if (process.platform !== "darwin") {
     initInputEngine(broadcastState, broadcastCollection);
@@ -98,9 +119,10 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
     buttons: ["システム設定を開く", "後で設定する"],
     defaultId: 0,
   };
-  const { response } = await (mainWindow
-    ? dialog.showMessageBox(mainWindow, opts)
-    : dialog.showMessageBox(opts));
+  // ダイアログは親なしで表示する: mainWindow は show:false の小窓で、
+  // app.dock.hide() 後はフォーカスも不安定なため、親に紐付けると見えないことがある。
+  app.focus({ steal: true });
+  const { response } = await dialog.showMessageBox(opts);
   if (response === 0) {
     shell.openExternal(
       "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
@@ -108,25 +130,32 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
   }
 
   // 許可されるまでポーリングし、許可された瞬間に再起動なしで入力エンジンを開始する。
-  if (accessibilityPollTimer) clearInterval(accessibilityPollTimer);
+  stopAccessibilityPolling();
+  const pollStartedAt = Date.now();
   accessibilityPollTimer = setInterval(() => {
-    if (!systemPreferences.isTrustedAccessibilityClient(false)) return;
-    if (accessibilityPollTimer) {
-      clearInterval(accessibilityPollTimer);
-      accessibilityPollTimer = null;
+    if (systemPreferences.isTrustedAccessibilityClient(false)) {
+      stopAccessibilityPolling();
+      try {
+        initInputEngine(broadcastState, broadcastCollection);
+        broadcastState();
+        notifyInputEngineStarted();
+      } catch (err) {
+        // アドホック署名では TCC 上「許可済み」でもフック生成に失敗することがある。
+        // setInterval コールバック内の例外で main プロセスを落とさないよう握る。
+        console.error(
+          "[typebloom] input engine failed to start after permission grant:",
+          err,
+        );
+      }
+      return;
     }
-    try {
-      initInputEngine(broadcastState, broadcastCollection);
-      broadcastState();
-    } catch (err) {
-      // アドホック署名では TCC 上「許可済み」でもフック生成に失敗することがある。
-      // setInterval コールバック内の例外で main プロセスを落とさないよう握る。
-      console.error(
-        "[typebloom] input engine failed to start after permission grant:",
-        err,
+    if (Date.now() - pollStartedAt >= ACCESSIBILITY_POLL_TIMEOUT_MS) {
+      stopAccessibilityPolling();
+      console.warn(
+        "[typebloom] accessibility permission was not granted within the timeout; stopped polling.",
       );
     }
-  }, 1500);
+  }, ACCESSIBILITY_POLL_INTERVAL_MS);
 }
 
 function createStatusWindow(): void {
@@ -418,9 +447,6 @@ app.on("window-all-closed", () => {
 
 // 終了前にフックを停止・ポイントをフラッシュ
 app.on("before-quit", () => {
-  if (accessibilityPollTimer) {
-    clearInterval(accessibilityPollTimer);
-    accessibilityPollTimer = null;
-  }
+  stopAccessibilityPolling();
   stopInputEngine();
 });
