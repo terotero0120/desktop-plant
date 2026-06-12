@@ -1,10 +1,10 @@
 {
-  "name": "desktop-plant",
+  "name": "typebloom",
   "version": "1.0.0",
   "description": "キーボード入力やマウス操作で観葉植物を育てるデスクトップアプリ",
   "license": "MIT",
   "main": "./out/main/index.js",
-  "author": "デスクプランター",
+  "author": "Typebloom",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "test": "vitest run",

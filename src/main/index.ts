@@ -332,7 +332,7 @@ app.whenReady().then(async () => {
   try {
     await initStore();
   } catch (err) {
-    console.error("[desktop-plant] store initialization failed:", err);
+    console.error("[typebloom] store initialization failed:", err);
     app.quit();
     return;
   }
