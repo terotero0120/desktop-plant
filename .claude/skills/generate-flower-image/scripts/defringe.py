@@ -22,13 +22,18 @@ try:
 except ImportError:
     sys.exit("Pillow が見つかりません。`pip install pillow` を実行してください。")
 
-# マゼンタ度 min(R,B)-G がこの値を超えるバンド内ピクセルをフリンジとみなす
-MAGENTA_THRESHOLD = 60
+# マゼンタ度 min(R,B)-G がこの値を超えるバンド内ピクセルをフリンジとみなす。
+# 黄色系の花弁とのブレンドは m=13〜50 程度の薄いサーモンピンクになるため低めに設定。
+# 正当な花色（ヒガンバナの花糸 m≈30 等）はバンド内でも近傍色置換で保護される
+MAGENTA_THRESHOLD = 12
 # 透明領域からこのピクセル数以内をフリンジ候補バンドとする
 BAND_PX = 3
 # 透明領域に連結した強マゼンタ塊（取り残し）を完全透明化する閾値。
 # 花弁の正当なピンク〜紫はほぼ m<=130（lavender 実測 p99=127）に収まる
 FLOOD_THRESHOLD = 130
+# 花弁の谷間などバンドより深く残る「ポケット」汚染の連結成分サイズ上限。
+# 正当なピンク〜紫の花は m>20 の画素が花全体で巨大な成分になるため除外される
+MAX_POCKET_SIZE = 100
 
 
 def _dilate(mask: np.ndarray, iterations: int) -> np.ndarray:
@@ -73,7 +78,44 @@ def _fill_from_neighbors(rgb: np.ndarray, known: np.ndarray, todo: np.ndarray) -
     return color
 
 
-def defringe(img: Image.Image) -> Image.Image:
+def _find_pockets(
+    candidates: np.ndarray, near_bg: np.ndarray, aggressive: bool
+) -> np.ndarray:
+    # 候補ピクセルの8連結成分のうち、小さく（<= MAX_POCKET_SIZE）かつ
+    # 透明背景に接しているものをポケット汚染として返す。
+    # aggressive 時は背景接触を要求せず、花弁に封じ込められた塊も対象にする
+    # （正当なピンクの粒を持つ花には使わないこと）。
+    pockets = np.zeros_like(candidates)
+    visited = np.zeros_like(candidates)
+    h, w = candidates.shape
+    ys, xs = np.where(candidates)
+    for sy, sx in zip(ys, xs):
+        if visited[sy, sx]:
+            continue
+        stack = [(sy, sx)]
+        visited[sy, sx] = True
+        component = []
+        too_big = False
+        while stack:
+            y, x = stack.pop()
+            component.append((y, x))
+            if len(component) > MAX_POCKET_SIZE:
+                too_big = True
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    ny, nx = y + dy, x + dx
+                    if 0 <= ny < h and 0 <= nx < w and candidates[ny, nx] and not visited[ny, nx]:
+                        visited[ny, nx] = True
+                        stack.append((ny, nx))
+        if too_big:
+            continue
+        if aggressive or any(near_bg[y, x] for y, x in component):
+            for y, x in component:
+                pockets[y, x] = True
+    return pockets
+
+
+def defringe(img: Image.Image, aggressive: bool = False) -> Image.Image:
     data = np.array(img.convert("RGBA"))
     rgb = data[:, :, :3].astype(int)
     alpha = data[:, :, 3]
@@ -95,6 +137,13 @@ def defringe(img: Image.Image) -> Image.Image:
 
     band = _dilate(bg, BAND_PX) & ~bg
     contaminated = band & (magenta > MAGENTA_THRESHOLD)
+
+    # バンドより深い位置に残る小さなポケット汚染も対象に加える。
+    # バンド汚染も候補に含め、バンド経由で背景につながる成分を分断しない
+    candidates = (magenta > MAGENTA_THRESHOLD) & ~bg
+    pockets = _find_pockets(candidates, _dilate(bg, 2), aggressive)
+    contaminated = contaminated | pockets
+
     if not contaminated.any():
         return Image.fromarray(data)
 
@@ -108,14 +157,16 @@ def defringe(img: Image.Image) -> Image.Image:
     return Image.fromarray(data)
 
 
-def main(paths: list[str]) -> None:
+def main(args: list[str]) -> None:
+    aggressive = "--aggressive" in args
+    paths = [a for a in args if a != "--aggressive"]
     for path in paths:
         img = Image.open(path)
-        defringe(img).save(path)
-        print(f"defringe: {path}")
+        defringe(img, aggressive=aggressive).save(path)
+        print(f"defringe{' (aggressive)' if aggressive else ''}: {path}")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit(f"使い方: {sys.argv[0]} <PNGファイル>...")
+        sys.exit(f"使い方: {sys.argv[0]} [--aggressive] <PNGファイル>...")
     main(sys.argv[1:])
