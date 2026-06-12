@@ -108,14 +108,23 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
   }
 
   // 許可されるまでポーリングし、許可された瞬間に再起動なしで入力エンジンを開始する。
+  if (accessibilityPollTimer) clearInterval(accessibilityPollTimer);
   accessibilityPollTimer = setInterval(() => {
-    if (systemPreferences.isTrustedAccessibilityClient(false)) {
-      if (accessibilityPollTimer) {
-        clearInterval(accessibilityPollTimer);
-        accessibilityPollTimer = null;
-      }
+    if (!systemPreferences.isTrustedAccessibilityClient(false)) return;
+    if (accessibilityPollTimer) {
+      clearInterval(accessibilityPollTimer);
+      accessibilityPollTimer = null;
+    }
+    try {
       initInputEngine(broadcastState, broadcastCollection);
       broadcastState();
+    } catch (err) {
+      // アドホック署名では TCC 上「許可済み」でもフック生成に失敗することがある。
+      // setInterval コールバック内の例外で main プロセスを落とさないよう握る。
+      console.error(
+        "[typebloom] input engine failed to start after permission grant:",
+        err,
+      );
     }
   }, 1500);
 }
