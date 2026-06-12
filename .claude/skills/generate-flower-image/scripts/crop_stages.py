@@ -20,6 +20,9 @@ try:
 except ImportError:
     sys.exit("Pillow が見つかりません。`pip install pillow` を実行してください。")
 
+sys.path.insert(0, str(Path(__file__).parent))
+from defringe import defringe  # noqa: E402
+
 OUTPUT_WIDTH = 400
 OUTPUT_HEIGHT = 600
 NUM_STAGES = 8
@@ -62,7 +65,7 @@ def main(src_path: str, out_dir: str) -> None:
 
     for i in range(NUM_STAGES):
         crop = img.crop((i * stage_w, 0, (i + 1) * stage_w, h))
-        processed = remove_chroma(crop)
+        processed = defringe(remove_chroma(crop))
         if processed.size != (OUTPUT_WIDTH, OUTPUT_HEIGHT):
             processed = processed.resize((OUTPUT_WIDTH, OUTPUT_HEIGHT), Image.LANCZOS)
         processed = fix_left_edge(processed)
