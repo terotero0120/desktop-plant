@@ -235,6 +235,17 @@ function createCollectionWindow(): void {
   });
 }
 
+function togglePlantWindow(): void {
+  if (!mainWindow) {
+    createWindow();
+  } else if (mainWindow.isVisible()) {
+    mainWindow.hide();
+  } else {
+    mainWindow.show();
+    applyOverlaySettings(mainWindow);
+  }
+}
+
 function createTray(onNextSeed: () => void): void {
   const iconImage = nativeImage.createFromPath(
     join(__dirname, "../../resources/icon.png"),
@@ -247,6 +258,7 @@ function createTray(onNextSeed: () => void): void {
   tray.setToolTip("Typebloom");
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: "植物を表示/隠す", click: togglePlantWindow },
     { label: "次のタネを植える", click: onNextSeed },
     { type: "separator" },
     {
@@ -269,18 +281,12 @@ function createTray(onNextSeed: () => void): void {
 
   tray.setContextMenu(contextMenu);
 
-  // macOS では setContextMenu 済みのトレイはクリックでメニューが開くため
-  // click イベントが発火しない。このトグル処理は Windows 専用。
-  tray.on("click", () => {
-    if (!mainWindow) {
-      createWindow();
-    } else if (mainWindow.isVisible()) {
-      mainWindow.hide();
-    } else {
-      mainWindow.show();
-      applyOverlaySettings(mainWindow);
-    }
-  });
+  // macOS では setContextMenu 済みでも click イベントは発火する（抑制されるのは
+  // mouse-up のみ）。メニュー表示とトグルが二重動作になるためクリックトグルは
+  // Windows のみとし、macOS はメニューの「植物を表示/隠す」で切り替える。
+  if (process.platform !== "darwin") {
+    tray.on("click", togglePlantWindow);
+  }
 }
 
 function openExternalSafe(url: string): void {
