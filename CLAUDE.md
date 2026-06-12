@@ -25,6 +25,6 @@ Electron アプリ。3つのプロセス構成: main (`src/main/index.ts`)、pre
 
 - `uiohook-napi` と `electron-store` は main プロセス専用（`electron.vite.config.ts` で `external` 指定）
 - `window-all-closed` は意図的に空 — トレイがアプリを常駐させる
-- 植物ウィンドウはデスクトップ専用表示。`LSUIElement` は付けない（付けると常に最前面化する）
+- 植物ウィンドウはデスクトップ専用表示。macOS は `type: "desktop"` でデスクトップ背景レベルに固定（このため macOS では植物上の右クリックメニューは動かず、トレイメニューで代替）。`LSUIElement` は付けない（付けると常に最前面化する）
 
 仕様: `doc/spec.md` / macOS 署名・TCC: `doc/macos-signing.md` / モデル運用: `doc/model-usage.md`

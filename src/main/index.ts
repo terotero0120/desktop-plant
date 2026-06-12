@@ -304,6 +304,12 @@ function createWindow(): void {
     resizable: false,
     show: false,
     autoHideMenuBar: true,
+    // macOS はデスクトップ背景レベル（kCGDesktopWindowLevel - 1）に固定する。
+    // alwaysOnTop: false だけでは初回表示や権限ダイアログの focus 奪取、
+    // 植物クリックなどでアプリがアクティブ化された際に前面へ上がってしまう。
+    // 注意: desktop タイプはフォーカス・マウスイベントを受け取らないため、
+    // 植物ウィンドウ上の右クリックメニューは macOS では動作しない（トレイメニューで代替）。
+    ...(process.platform === "darwin" ? { type: "desktop" } : {}),
     webPreferences: COMMON_WEB_PREFERENCES,
   });
 
