@@ -6,6 +6,7 @@ import {
   Menu,
   dialog,
   nativeImage,
+  Notification,
   screen,
   ipcMain,
   systemPreferences,
@@ -65,6 +66,28 @@ function applyOverlaySettings(win: BrowserWindow): void {
   }
 }
 
+let accessibilityPollTimer: ReturnType<typeof setInterval> | null = null;
+
+const ACCESSIBILITY_POLL_INTERVAL_MS = 1500;
+// 無期限ポーリングを避けるため一定時間で打ち切る（ユーザーが許可しない場合の安全弁）。
+const ACCESSIBILITY_POLL_TIMEOUT_MS = 30 * 60_000;
+
+function stopAccessibilityPolling(): void {
+  if (accessibilityPollTimer) {
+    clearInterval(accessibilityPollTimer);
+    accessibilityPollTimer = null;
+  }
+}
+
+function notifyInputEngineStarted(): void {
+  if (Notification.isSupported()) {
+    new Notification({
+      title: "Typebloom",
+      body: "アクセシビリティを検知しました。植物の成長を開始します🌱",
+    }).show();
+  }
+}
+
 async function initInputEngineWithPermissionCheck(): Promise<void> {
   if (process.platform !== "darwin") {
     initInputEngine(broadcastState, broadcastCollection);
@@ -76,6 +99,10 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
     return;
   }
 
+  // prompt=true でアクセシビリティの一覧にアプリを登録し、OS のプロンプトを出す。
+  // これを呼ばないと一覧にアプリが現れず、ユーザーが許可できないことがある。
+  systemPreferences.isTrustedAccessibilityClient(true);
+
   const opts = {
     type: "warning" as const,
     title: "アクセシビリティの権限が必要です",
@@ -84,22 +111,51 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
     detail: [
       "【設定手順】",
       "1.「システム設定を開く」をクリック",
-      "2.「アクセシビリティ」の一覧から Desktop Plant を許可",
-      "3. アプリを再起動",
+      "2.「アクセシビリティ」の一覧で Typebloom をオンにする",
       "",
-      "権限を付与しなくてもアプリは起動しますが、植物の成長機能は動作しません。",
+      "許可するとその場で植物の成長が始まります（アプリの再起動は不要です）。",
+      "権限を付与しなくてもアプリは起動しますが、成長機能は動作しません。",
     ].join("\n"),
     buttons: ["システム設定を開く", "後で設定する"],
     defaultId: 0,
   };
-  const { response } = await (mainWindow
-    ? dialog.showMessageBox(mainWindow, opts)
-    : dialog.showMessageBox(opts));
+  // ダイアログは親なしで表示する: mainWindow は show:false の小窓で、
+  // app.dock.hide() 後はフォーカスも不安定なため、親に紐付けると見えないことがある。
+  app.focus({ steal: true });
+  const { response } = await dialog.showMessageBox(opts);
   if (response === 0) {
     shell.openExternal(
       "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
     );
   }
+
+  // 許可されるまでポーリングし、許可された瞬間に再起動なしで入力エンジンを開始する。
+  stopAccessibilityPolling();
+  const pollStartedAt = Date.now();
+  accessibilityPollTimer = setInterval(() => {
+    if (systemPreferences.isTrustedAccessibilityClient(false)) {
+      stopAccessibilityPolling();
+      try {
+        initInputEngine(broadcastState, broadcastCollection);
+        broadcastState();
+        notifyInputEngineStarted();
+      } catch (err) {
+        // アドホック署名では TCC 上「許可済み」でもフック生成に失敗することがある。
+        // setInterval コールバック内の例外で main プロセスを落とさないよう握る。
+        console.error(
+          "[typebloom] input engine failed to start after permission grant:",
+          err,
+        );
+      }
+      return;
+    }
+    if (Date.now() - pollStartedAt >= ACCESSIBILITY_POLL_TIMEOUT_MS) {
+      stopAccessibilityPolling();
+      console.warn(
+        "[typebloom] accessibility permission was not granted within the timeout; stopped polling.",
+      );
+    }
+  }, ACCESSIBILITY_POLL_INTERVAL_MS);
 }
 
 function createStatusWindow(): void {
@@ -133,7 +189,7 @@ async function showPrivacyDialog(): Promise<void> {
     title: "プライバシーについて",
     message: "プライバシーについて",
     detail: [
-      "Desktop Plant のデータ収集について",
+      "Typebloom のデータ収集について",
       "",
       "このアプリはキーボード・マウスの操作量を計測し、植物の成長ポイントに変換します。",
       "",
@@ -180,7 +236,7 @@ function createTray(onNextSeed: () => void): void {
   }
 
   tray = new Tray(iconImage);
-  tray.setToolTip("Desktop Plant");
+  tray.setToolTip("Typebloom");
 
   const contextMenu = Menu.buildFromTemplate([
     { label: "次のタネを植える", click: onNextSeed },
@@ -268,7 +324,14 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
-  electronApp.setAppUserModelId("com.desktopplant");
+  electronApp.setAppUserModelId("com.typebloom.app");
+
+  // Dock アイコンを非表示にする（トレイ常駐アプリのため）。
+  // Info.plist の LSUIElement ではなく実行時の dock.hide() を使う点が重要:
+  // LSUIElement(=起動時アクセサリ化) だと植物ウィンドウが常に最前面に浮いてしまい
+  // デスクトップ専用表示（PR #31, 他ウィンドウの裏に隠れる）が壊れる。
+  // 実行時の dock.hide() は最前面化の副作用がないため両立できる。
+  app.dock?.hide();
 
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
@@ -314,7 +377,7 @@ app.whenReady().then(async () => {
   try {
     await initStore();
   } catch (err) {
-    console.error("[desktop-plant] store initialization failed:", err);
+    console.error("[typebloom] store initialization failed:", err);
     app.quit();
     return;
   }
@@ -384,5 +447,6 @@ app.on("window-all-closed", () => {
 
 // 終了前にフックを停止・ポイントをフラッシュ
 app.on("before-quit", () => {
+  stopAccessibilityPolling();
   stopInputEngine();
 });
