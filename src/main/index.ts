@@ -90,7 +90,7 @@ async function initInputEngineWithPermissionCheck(): Promise<void> {
     detail: [
       "【設定手順】",
       "1.「システム設定を開く」をクリック",
-      "2.「アクセシビリティ」の一覧で デスクプランター をオンにする",
+      "2.「アクセシビリティ」の一覧で Typebloom をオンにする",
       "",
       "許可するとその場で植物の成長が始まります（アプリの再起動は不要です）。",
       "権限を付与しなくてもアプリは起動しますが、成長機能は動作しません。",
@@ -151,7 +151,7 @@ async function showPrivacyDialog(): Promise<void> {
     title: "プライバシーについて",
     message: "プライバシーについて",
     detail: [
-      "Desktop Plant のデータ収集について",
+      "Typebloom のデータ収集について",
       "",
       "このアプリはキーボード・マウスの操作量を計測し、植物の成長ポイントに変換します。",
       "",
@@ -198,7 +198,7 @@ function createTray(onNextSeed: () => void): void {
   }
 
   tray = new Tray(iconImage);
-  tray.setToolTip("Desktop Plant");
+  tray.setToolTip("Typebloom");
 
   const contextMenu = Menu.buildFromTemplate([
     { label: "次のタネを植える", click: onNextSeed },

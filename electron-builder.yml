@@ -1,5 +1,5 @@
 appId: com.desktopplant.app
-productName: デスクプランター
+productName: Typebloom
 directories:
   buildResources: build
 # out/（ビルド成果物）と resources/（トレイアイコン等）のみを同梱する。
