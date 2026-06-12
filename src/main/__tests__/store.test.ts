@@ -453,7 +453,10 @@ describe("initStore: privacyConsent 復元バリデーション", () => {
     startedAt: Date.now(),
   };
 
-  async function runInitWithConsent(rawConsent: unknown) {
+  async function runInitWithConsent(rawConsent: unknown): Promise<{
+    getConsent: () => boolean;
+    mockSet: ReturnType<typeof vi.fn>;
+  }> {
     const data: Record<string, unknown> = {
       privacyConsent: rawConsent,
       plant: validPlant,
@@ -464,10 +467,10 @@ describe("initStore: privacyConsent 復元バリデーション", () => {
     });
     vi.doMock("electron-store", () => ({
       default: class {
-        get(key: string) {
+        get(key: string): unknown {
           return data[key];
         }
-        set(key: string, value: unknown) {
+        set(key: string, value: unknown): void {
           mockSet(key, value);
         }
       },
@@ -491,9 +494,18 @@ describe("initStore: privacyConsent 復元バリデーション", () => {
   });
 
   it.each([
-    { label: '"false"（文字列）は false にフォールバックしてストアを上書きする', raw: "false" },
-    { label: "null は false にフォールバックしてストアを上書きする", raw: null },
-    { label: "undefined は false にフォールバックしてストアを上書きする", raw: undefined },
+    {
+      label: '"false"（文字列）は false にフォールバックしてストアを上書きする',
+      raw: "false",
+    },
+    {
+      label: "null は false にフォールバックしてストアを上書きする",
+      raw: null,
+    },
+    {
+      label: "undefined は false にフォールバックしてストアを上書きする",
+      raw: undefined,
+    },
     { label: "数値 1 は false にフォールバックしてストアを上書きする", raw: 1 },
   ])("$label", async ({ raw }) => {
     const { getConsent, mockSet } = await runInitWithConsent(raw);

@@ -108,9 +108,7 @@ export function isCollectionEntryArray(v: unknown): v is CollectionEntry[] {
 }
 
 export const IPC_CHANNELS = {
-  GET_STATE: "plant:get-state",
   STATE_UPDATE: "plant:state-update",
-  PLANT_NEXT_SEED: "plant:next-seed",
   SHOW_CONTEXT_MENU: "plant:show-context-menu",
   GET_COLLECTION: "plant:get-collection",
   GET_STATUS: "plant:get-status",

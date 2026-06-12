@@ -90,12 +90,20 @@ function notifyInputEngineStarted(): void {
 
 async function initInputEngineWithPermissionCheck(): Promise<void> {
   if (process.platform !== "darwin") {
-    initInputEngine(broadcastState, broadcastCollection);
+    try {
+      initInputEngine(broadcastState, broadcastCollection);
+    } catch (err) {
+      console.error("[typebloom] input engine failed to start:", err);
+    }
     return;
   }
 
   if (systemPreferences.isTrustedAccessibilityClient(false)) {
-    initInputEngine(broadcastState, broadcastCollection);
+    try {
+      initInputEngine(broadcastState, broadcastCollection);
+    } catch (err) {
+      console.error("[typebloom] input engine failed to start:", err);
+    }
     return;
   }
 
@@ -227,6 +235,17 @@ function createCollectionWindow(): void {
   });
 }
 
+function togglePlantWindow(): void {
+  if (!mainWindow) {
+    createWindow();
+  } else if (mainWindow.isVisible()) {
+    mainWindow.hide();
+  } else {
+    mainWindow.show();
+    applyOverlaySettings(mainWindow);
+  }
+}
+
 function createTray(onNextSeed: () => void): void {
   const iconImage = nativeImage.createFromPath(
     join(__dirname, "../../resources/icon.png"),
@@ -239,6 +258,7 @@ function createTray(onNextSeed: () => void): void {
   tray.setToolTip("Typebloom");
 
   const contextMenu = Menu.buildFromTemplate([
+    { label: "植物を表示/隠す", click: togglePlantWindow },
     { label: "次のタネを植える", click: onNextSeed },
     { type: "separator" },
     {
@@ -261,16 +281,12 @@ function createTray(onNextSeed: () => void): void {
 
   tray.setContextMenu(contextMenu);
 
-  tray.on("click", () => {
-    if (!mainWindow) {
-      createWindow();
-    } else if (mainWindow.isVisible()) {
-      mainWindow.hide();
-    } else {
-      mainWindow.show();
-      applyOverlaySettings(mainWindow);
-    }
-  });
+  // macOS では setContextMenu 済みでも click イベントは発火する（抑制されるのは
+  // mouse-up のみ）。メニュー表示とトグルが二重動作になるためクリックトグルは
+  // Windows のみとし、macOS はメニューの「植物を表示/隠す」で切り替える。
+  if (process.platform !== "darwin") {
+    tray.on("click", togglePlantWindow);
+  }
 }
 
 function openExternalSafe(url: string): void {
@@ -394,7 +410,6 @@ app.whenReady().then(async () => {
     flushConsent();
   }
 
-  ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState());
   ipcMain.handle(IPC_CHANNELS.GET_COLLECTION, () => getCollection());
   ipcMain.handle(IPC_CHANNELS.GET_STATUS, () => ({
     state: getState(),
@@ -406,11 +421,6 @@ app.whenReady().then(async () => {
     flushState();
     broadcastState();
   }
-
-  ipcMain.handle(IPC_CHANNELS.PLANT_NEXT_SEED, () => {
-    doNextSeed();
-    return getState();
-  });
 
   ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
