@@ -1,4 +1,4 @@
-appId: com.desktopplant.app
+appId: com.typebloom.app
 productName: Typebloom
 directories:
   buildResources: build

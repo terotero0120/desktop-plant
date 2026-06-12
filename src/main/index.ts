@@ -286,7 +286,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
-  electronApp.setAppUserModelId("com.desktopplant");
+  electronApp.setAppUserModelId("com.typebloom.app");
 
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
