@@ -18,12 +18,14 @@ const initialState: PlantState = {
 
 function getPlantImage(state: PlantState, growthThreshold: number): string {
   const band = calcBandIndex(state.totalPoints, growthThreshold);
+  // band は 0〜8 の9値、pngs は 1.png〜8.png の8枚。
+  // band 0 と band 1 はどちらも pngs[0]（1.png）にマップされる。
   return PLANT_REGISTRY[state.plantId].pngs[Math.max(0, band - 1)];
 }
 
 function App(): React.JSX.Element {
   const [state, setState] = useState<PlantState>(initialState);
-  const [growthThreshold, setGrowthThreshold] = useState(15_000);
+  const [growthThreshold, setGrowthThreshold] = useState(30_000);
 
   useEffect(() => {
     ipcGetStatus()

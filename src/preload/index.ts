@@ -16,13 +16,12 @@ const plantApi = {
     ipcRenderer.invoke(IPC_CHANNELS.GET_STATUS),
   getCollection: (): Promise<CollectionEntry[]> =>
     ipcRenderer.invoke(IPC_CHANNELS.GET_COLLECTION),
-  onStateUpdate: (handler: (state: PlantState) => void): () => void =>
+  onStateUpdate: (handler: (state: PlantState) => void): (() => void) =>
     makeSubscription(IPC_CHANNELS.STATE_UPDATE, handler),
   onCollectionUpdate: (
     handler: (collection: CollectionEntry[]) => void,
-  ): () => void => makeSubscription(IPC_CHANNELS.COLLECTION_UPDATE, handler),
-  showContextMenu: (): void =>
-    ipcRenderer.send(IPC_CHANNELS.SHOW_CONTEXT_MENU),
+  ): (() => void) => makeSubscription(IPC_CHANNELS.COLLECTION_UPDATE, handler),
+  showContextMenu: (): void => ipcRenderer.send(IPC_CHANNELS.SHOW_CONTEXT_MENU),
 };
 
 contextBridge.exposeInMainWorld("plantApi", plantApi);

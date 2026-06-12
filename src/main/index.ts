@@ -90,12 +90,20 @@ function notifyInputEngineStarted(): void {
 
 async function initInputEngineWithPermissionCheck(): Promise<void> {
   if (process.platform !== "darwin") {
-    initInputEngine(broadcastState, broadcastCollection);
+    try {
+      initInputEngine(broadcastState, broadcastCollection);
+    } catch (err) {
+      console.error("[typebloom] input engine failed to start:", err);
+    }
     return;
   }
 
   if (systemPreferences.isTrustedAccessibilityClient(false)) {
-    initInputEngine(broadcastState, broadcastCollection);
+    try {
+      initInputEngine(broadcastState, broadcastCollection);
+    } catch (err) {
+      console.error("[typebloom] input engine failed to start:", err);
+    }
     return;
   }
 
@@ -261,6 +269,8 @@ function createTray(onNextSeed: () => void): void {
 
   tray.setContextMenu(contextMenu);
 
+  // macOS では setContextMenu 済みのトレイはクリックでメニューが開くため
+  // click イベントが発火しない。このトグル処理は Windows 専用。
   tray.on("click", () => {
     if (!mainWindow) {
       createWindow();
@@ -388,7 +398,6 @@ app.whenReady().then(async () => {
     flushConsent();
   }
 
-  ipcMain.handle(IPC_CHANNELS.GET_STATE, () => getState());
   ipcMain.handle(IPC_CHANNELS.GET_COLLECTION, () => getCollection());
   ipcMain.handle(IPC_CHANNELS.GET_STATUS, () => ({
     state: getState(),
@@ -400,11 +409,6 @@ app.whenReady().then(async () => {
     flushState();
     broadcastState();
   }
-
-  ipcMain.handle(IPC_CHANNELS.PLANT_NEXT_SEED, () => {
-    doNextSeed();
-    return getState();
-  });
 
   ipcMain.on(IPC_CHANNELS.SHOW_CONTEXT_MENU, (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);

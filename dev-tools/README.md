@@ -4,7 +4,7 @@
 
 ## svg-viewer.html
 
-花のSVG画像（成長段階1〜8）をブラウザで確認するツール。
+花のPNG画像（成長段階1〜8）をブラウザで確認するツール。
 
 ```
 open dev-tools/svg-viewer.html
@@ -12,9 +12,9 @@ open dev-tools/svg-viewer.html
 
 ### 花を増やすとき
 
-1. SVGファイルを追加する
+1. PNGファイルを追加する
    ```
-   src/renderer/src/assets/plants/{花の名前}/1.svg 〜 8.svg
+   src/renderer/src/assets/plants/{花の名前}/1.png 〜 8.png
    ```
 
 2. `svg-viewer.html` の `<select>` に `<option>` を追記する

@@ -1,4 +1,4 @@
-// electron-store v8 は ESM-only のため dynamic import を使用する
+// electron-store は v9 以降 ESM-only。将来の更新を見据えて dynamic import で読み込む
 
 import type {
   CollectionEntry,
@@ -39,6 +39,7 @@ function pickRandomDefault(ids: readonly PlantId[]): PlantId {
   return ids[Math.floor(Math.random() * ids.length)];
 }
 
+// incrementPoints から内部的に使用するが、export はテスト用。
 export function checkGrowth(): void {
   const bandIndex = calcBandIndex(_state.totalPoints, GROWTH_THRESHOLD);
   const newStage: GrowthStage =
@@ -176,6 +177,7 @@ export function incrementPoints(delta: number): void {
   }
 }
 
+// テスト専用。不変条件を迂回できるため本番コードでは使わないこと。
 export function updateState(updates: Partial<PlantState>): void {
   _state = { ..._state, ...updates };
 }

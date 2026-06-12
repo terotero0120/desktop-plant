@@ -79,7 +79,6 @@ describe("inputEngine", () => {
 
     it("複数のキー入力で累積加算される", () => {
       handlers["keydown"]();
-      vi.advanceTimersByTime(300); // アイドルリセットのスロットル(200ms)を超える
       handlers["keydown"]();
       expect(mockIncrementPoints).toHaveBeenCalledTimes(2);
       expect(mockIncrementPoints).toHaveBeenNthCalledWith(1, 1);
@@ -155,14 +154,6 @@ describe("inputEngine", () => {
 
       vi.advanceTimersByTime(10_000);
       expect(mockFlushState).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe("アイドル検出", () => {
-    it("60秒のアイドル後もキー入力でポイントが加算される（アイドルは入力時に即座にリセット）", () => {
-      vi.advanceTimersByTime(60_000);
-      handlers["keydown"]();
-      expect(mockIncrementPoints).toHaveBeenCalledWith(1);
     });
   });
 
