@@ -288,6 +288,13 @@ function createWindow(): void {
 app.whenReady().then(async () => {
   electronApp.setAppUserModelId("com.typebloom.app");
 
+  // Dock アイコンを非表示にする（トレイ常駐アプリのため）。
+  // Info.plist の LSUIElement ではなく実行時の dock.hide() を使う点が重要:
+  // LSUIElement(=起動時アクセサリ化) だと植物ウィンドウが常に最前面に浮いてしまい
+  // デスクトップ専用表示（PR #31, 他ウィンドウの裏に隠れる）が壊れる。
+  // 実行時の dock.hide() は最前面化の副作用がないため両立できる。
+  app.dock?.hide();
+
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });

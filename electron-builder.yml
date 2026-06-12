@@ -23,10 +23,10 @@ mac:
   identity: '-'
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  # extendInfo はマップ形式で書く。リスト形式（- key: value）だと
-  # electron-builder が Info.plist に反映せず、LSUIElement が効かない。
+  # extendInfo はマップ形式で書く（リスト形式 "- key: value" だと Info.plist に反映されない）。
+  # LSUIElement は設定しない: 起動時アクセサリ化すると植物ウィンドウが常に最前面に浮き、
+  # デスクトップ専用表示（PR #31）が壊れるため。Dock 非表示は main の app.dock.hide() で行う。
   extendInfo:
-    LSUIElement: true
     NSCameraUsageDescription: Application requests access to the device's camera.
     NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
