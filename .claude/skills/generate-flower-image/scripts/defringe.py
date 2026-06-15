@@ -10,8 +10,13 @@
    誤判定しても近傍の花弁色に置き換わるだけで実害がない）
 2. マゼンタ度に応じてアルファを下げ、滑らかな縁を復元する
 
+オプション:
+    --aggressive  花弁に封じ込められた塊（背景非連結）も除去する
+    --warm        黄〜赤〜茶の暖色花用。B>G を残らず除去する強力モード
+                  （紫・青・ピンクの花には使わないこと）
+
 使い方:
-    python defringe.py <PNGファイル>...
+    python defringe.py [--aggressive] [--warm] <PNGファイル>...
 """
 
 import sys
@@ -26,6 +31,10 @@ except ImportError:
 # 黄色系の花弁とのブレンドは m=13〜50 程度の薄いサーモンピンクになるため低めに設定。
 # 正当な花色（ヒガンバナの花糸 m≈30 等）はバンド内でも近傍色置換で保護される
 MAGENTA_THRESHOLD = 12
+# 暖色花モード（--warm）の閾値。黄色〜赤〜茶の花は B>G が原理的に存在しない（黄=R+G,
+# 橙・茶・緑いずれも G>=B）ため、わずかな青超過（m>1）はすべてマゼンタ残色と断定できる。
+# 紫・青・ピンクの花（lavender/hydrangea/rose 等）には使わないこと。
+WARM_THRESHOLD = 1
 # 透明領域からこのピクセル数以内をフリンジ候補バンドとする
 BAND_PX = 3
 # 透明領域に連結した強マゼンタ塊（取り残し）を完全透明化する閾値。
@@ -115,11 +124,14 @@ def _find_pockets(
     return pockets
 
 
-def defringe(img: Image.Image, aggressive: bool = False) -> Image.Image:
+def defringe(
+    img: Image.Image, aggressive: bool = False, warm: bool = False
+) -> Image.Image:
     data = np.array(img.convert("RGBA"))
     rgb = data[:, :, :3].astype(int)
     alpha = data[:, :, 3]
 
+    threshold = WARM_THRESHOLD if warm else MAGENTA_THRESHOLD
     magenta = np.minimum(rgb[:, :, 0], rgb[:, :, 2]) - rgb[:, :, 1]
     bg = alpha == 0
 
@@ -136,11 +148,11 @@ def defringe(img: Image.Image, aggressive: bool = False) -> Image.Image:
     data[:, :, 3] = alpha
 
     band = _dilate(bg, BAND_PX) & ~bg
-    contaminated = band & (magenta > MAGENTA_THRESHOLD)
+    contaminated = band & (magenta > threshold)
 
     # バンドより深い位置に残る小さなポケット汚染も対象に加える。
     # バンド汚染も候補に含め、バンド経由で背景につながる成分を分断しない
-    candidates = (magenta > MAGENTA_THRESHOLD) & ~bg
+    candidates = (magenta > threshold) & ~bg
     pockets = _find_pockets(candidates, _dilate(bg, 2), aggressive)
     contaminated = contaminated | pockets
 
@@ -152,21 +164,28 @@ def defringe(img: Image.Image, aggressive: bool = False) -> Image.Image:
     data[contaminated, :3] = np.clip(filled[contaminated], 0, 255).astype(np.uint8)
 
     # マゼンタ度が強いほど背景の寄与が大きい縁なので、アルファを比例して下げる
-    ramp = np.clip((255 - magenta) / (255 - MAGENTA_THRESHOLD), 0.0, 1.0)
+    ramp = np.clip((255 - magenta) / (255 - threshold), 0.0, 1.0)
     data[contaminated, 3] = (alpha[contaminated] * ramp[contaminated]).astype(np.uint8)
     return Image.fromarray(data)
 
 
 def main(args: list[str]) -> None:
+    flags = {"--aggressive", "--warm"}
     aggressive = "--aggressive" in args
-    paths = [a for a in args if a != "--aggressive"]
+    warm = "--warm" in args
+    paths = [a for a in args if a not in flags]
+    tag = "".join(
+        f" ({label})"
+        for label, on in (("aggressive", aggressive), ("warm", warm))
+        if on
+    )
     for path in paths:
         img = Image.open(path)
-        defringe(img, aggressive=aggressive).save(path)
-        print(f"defringe{' (aggressive)' if aggressive else ''}: {path}")
+        defringe(img, aggressive=aggressive, warm=warm).save(path)
+        print(f"defringe{tag}: {path}")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit(f"使い方: {sys.argv[0]} [--aggressive] <PNGファイル>...")
+        sys.exit(f"使い方: {sys.argv[0]} [--aggressive] [--warm] <PNGファイル>...")
     main(sys.argv[1:])

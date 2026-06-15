@@ -51,7 +51,7 @@ def fix_left_edge(img: Image.Image) -> Image.Image:
     return Image.fromarray(data)
 
 
-def main(src_path: str, out_dir: str) -> None:
+def main(src_path: str, out_dir: str, aggressive: bool = False, warm: bool = False) -> None:
     src = Path(src_path)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -65,7 +65,7 @@ def main(src_path: str, out_dir: str) -> None:
 
     for i in range(NUM_STAGES):
         crop = img.crop((i * stage_w, 0, (i + 1) * stage_w, h))
-        processed = defringe(remove_chroma(crop))
+        processed = defringe(remove_chroma(crop), aggressive=aggressive, warm=warm)
         if processed.size != (OUTPUT_WIDTH, OUTPUT_HEIGHT):
             processed = processed.resize((OUTPUT_WIDTH, OUTPUT_HEIGHT), Image.LANCZOS)
         processed = fix_left_edge(processed)
@@ -77,6 +77,11 @@ def main(src_path: str, out_dir: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit(f"使い方: {sys.argv[0]} <all-stages.png> <出力ディレクトリ>")
-    main(sys.argv[1], sys.argv[2])
+    flags = {"--aggressive", "--warm"}
+    pos = [a for a in sys.argv[1:] if a not in flags]
+    if len(pos) != 2:
+        sys.exit(
+            f"使い方: {sys.argv[0]} [--aggressive] [--warm] <all-stages.png> <出力ディレクトリ>\n"
+            "  --warm は黄〜赤〜茶の暖色花のみ（紫・青・ピンクの花には使わない）"
+        )
+    main(pos[0], pos[1], aggressive="--aggressive" in sys.argv, warm="--warm" in sys.argv)

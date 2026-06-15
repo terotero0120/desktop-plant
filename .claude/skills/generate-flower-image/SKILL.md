@@ -163,6 +163,21 @@ python <skill_dir>/scripts/crop_stages.py \
 `<skill_dir>` は このスキルファイルと同じディレクトリ（`generate-flower-image/`）。
 Pillow がない場合は `pip install pillow` を先に実行する。
 
+#### マゼンタ残色（フリンジ）が残る場合
+
+切り出し時に `defringe` が縁のマゼンタ残色を自動除去するが、花色に応じて強度を上げられる:
+
+- `--warm`: **黄〜赤〜茶の暖色花のみ**。これらの花は青(B)>緑(G)の画素が原理的に存在しないため、わずかな青超過を残らずマゼンタ汚染と断定して除去できる（例: ひまわり）。**紫・青・ピンクの花（lavender/hydrangea/rose 等）には使わない** — 正当な花弁色を壊す
+- `--aggressive`: 花弁に封じ込められた塊（背景非連結）も除去する
+
+```bash
+# 暖色花の例（ひまわり等）。残色が気になる場合に付ける
+python <skill_dir>/scripts/crop_stages.py --warm --aggressive \
+  <...>/all-stages.png <...>/
+```
+
+個別PNG生成後でも `scripts/defringe.py [--warm] [--aggressive] <png>...` で再処理できる。
+
 ---
 
 ### 4. Claude による検証
